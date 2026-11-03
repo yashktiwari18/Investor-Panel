@@ -1,259 +1,2187 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import {
-  ArrowRight, ArrowUpRight, BadgeCheck, Bell, Bookmark, BriefcaseBusiness,
-  Building2, Check, CheckCircle2, ChevronDown, ChevronRight, CircleHelp, Clock3, Compass,
-  FilePlus2, FileText, Filter, GraduationCap, HandCoins, LayoutDashboard, LogOut, Menu,
-  MessageSquareText, Search, ShieldCheck, SlidersHorizontal, Sparkles,
-  Wallet, X, XCircle,
+  ArrowRight, ArrowUpRight, BadgeCheck, Bell, Bookmark, BookOpen, BriefcaseBusiness,
+  Building2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock3, Cog, Compass,
+  ExternalLink, Factory, FilePlus2, FileText, Filter, GraduationCap, HandCoins,
+  IndianRupee, Instagram, LayoutDashboard, Linkedin, LogOut, Menu, MessageSquareText, PenSquare, Plus, Quote, Search,
+  ShieldCheck, ShoppingBag, SlidersHorizontal, Sparkles, Twitter, User, Users, Wallet, X, XCircle, Youtube,
 } from 'lucide-react';
 import { createVenture, loadDemoData, resetDemoData, saveDemoData } from './storage';
 import type { DemoData, Role, Venture, VentureStatus } from './types';
 
-type Page = 'overview' | 'applications' | 'submit' | 'review' | 'discover';
-const roleTitles: Record<Role, string> = { student: 'Student founder', admin: 'Program administrator', investor: 'Investor' };
+type Page = 'front' | 'overview' | 'applications' | 'submit' | 'review' | 'discover';
+
+const roleTitles: Record<Role, string> = {
+  student: 'Student founder',
+  admin: 'Program administrator',
+  investor: 'Investor',
+};
+
 const statusStyles: Record<VentureStatus, string> = {
   'Under review': 'bg-amber-50 text-amber-800 ring-amber-200',
   'Revision requested': 'bg-orange-50 text-orange-800 ring-orange-200',
   Approved: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
   'Not selected': 'bg-slate-100 text-slate-600 ring-slate-200',
 };
-const money = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
-const dateLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+const formatPriceBadge = (rangeId: string) => {
+  if (rangeId === '50+') return '₹ 50+';
+  return `₹ ${rangeId.replace('-', ' - ')}`;
+};
+
+const dateLabel = (date: string) =>
+  new Date(`${date}T12:00:00`).toLocaleDateString('en-IN', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
 function StatusBadge({ status }: { status: VentureStatus }) {
-  return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${statusStyles[status]}`}><span className="size-1.5 rounded-full bg-current opacity-70" />{status}</span>;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${statusStyles[status]}`}
+    >
+      <span className="size-1.5 rounded-full bg-current opacity-70" />
+      {status}
+    </span>
+  );
 }
 
-function BrandMark() {
-  return <div className="flex items-center gap-2.5"><div className="flex size-9 items-center justify-center rounded-xl bg-[#174d82] text-white shadow-sm"><span className="text-[15px] font-extrabold tracking-tight">V</span></div><div><div className="font-[var(--app-font-serif)] text-[16px] font-extrabold tracking-[-.04em] text-[#172c47]">venturebridge</div><div className="text-[9px] font-semibold uppercase tracking-[.16em] text-slate-400">campus ventures</div></div></div>;
-}
-
-function Login({ onEnter }: { onEnter: (role: Role, name: string) => void }) {
-  const [role, setRole] = useState<Role>('student');
-  const [name, setName] = useState('Maya Chen');
-  const roles: { key: Role; label: string; desc: string; icon: typeof GraduationCap }[] = [
-    { key: 'student', label: 'Student founder', desc: 'Submit an idea and follow its progress.', icon: GraduationCap },
-    { key: 'admin', label: 'Program admin', desc: 'Review applications and allocate funding.', icon: ShieldCheck },
-    { key: 'investor', label: 'Investor', desc: 'Explore approved student ventures.', icon: HandCoins },
-  ];
-  return <main className="relative flex min-h-[100dvh] overflow-hidden bg-[#f7f9fc]">
-    <div className="absolute inset-0 soft-grid opacity-60" />
-    <aside className="relative hidden w-[43%] flex-col justify-between overflow-hidden bg-[#173b62] px-12 py-10 text-white lg:flex">
-      <div className="absolute -right-32 -top-28 size-[430px] rounded-full border border-white/10" /><div className="absolute -right-16 -top-12 size-[300px] rounded-full border border-white/10" />
-      <div className="relative"><div className="mb-12 flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-lg font-bold">V</div><span className="font-[var(--app-font-serif)] text-xl font-extrabold tracking-tight">venturebridge</span></div>
-        <p className="mb-4 text-xs font-bold uppercase tracking-[.19em] text-[#a9c8e8]">A better first step</p>
-        <h1 className="max-w-lg font-[var(--app-font-serif)] text-[clamp(2.7rem,5vw,4.4rem)] font-semibold leading-[1.04] tracking-[-.055em]">Good ideas deserve a clear path forward.</h1>
-        <p className="mt-6 max-w-md text-base leading-7 text-blue-100/75">One place for student founders, thoughtful reviewers, and investors to move early ventures from possibility to progress.</p>
+// Brand Logo matching IdeaBridge style
+function IdeaBridgeLogo({ onClick, light = false }: { onClick?: () => void; light?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-2.5 text-left transition hover:opacity-90"
+    >
+      <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-[#14539a] via-[#1a6ec9] to-[#2e88ed] text-white shadow-sm ring-1 ring-blue-500/20">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="size-5"
+        >
+          <circle cx="5" cy="18" r="2.5" fill="currentColor" stroke="none" />
+          <circle cx="19" cy="18" r="2.5" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="7" r="2.8" fill="currentColor" stroke="none" />
+          <path d="M5 15.5C7.5 10 9.5 8 12 8s4.5 2 7 7.5" />
+        </svg>
       </div>
-      <div className="relative flex items-center justify-between border-t border-white/15 pt-5 text-xs text-blue-100/65"><span>Student ventures, made visible.</span><span>VentureBridge · Demo</span></div>
-      <div className="absolute bottom-[18%] right-[13%] flex size-32 items-center justify-center rounded-full border border-white/15 bg-white/[.06]"><div className="flex size-20 items-center justify-center rounded-full border border-white/20 bg-white/[.08]"><ArrowUpRight className="size-8 text-blue-100" /></div></div>
-    </aside>
-    <section className="relative flex flex-1 items-center justify-center px-5 py-10 sm:px-10">
-      <div className="w-full max-w-[470px] animate-rise">
-        <div className="mb-8 lg:hidden"><BrandMark /></div>
-        <div className="mb-8"><p className="mb-2 text-xs font-bold uppercase tracking-[.16em] text-[#3973a8]">Demo workspace</p><h2 className="font-[var(--app-font-serif)] text-3xl font-bold tracking-[-.04em] text-[#19314d]">Welcome to VentureBridge</h2><p className="mt-2 text-sm leading-6 text-slate-500">Choose a role to explore its workspace. No password needed.</p></div>
-        <div className="space-y-2.5" role="radiogroup" aria-label="Choose a demo role">
-          {roles.map(({ key, label, desc, icon: Icon }) => <button type="button" key={key} onClick={() => { setRole(key); setName(key === 'student' ? 'Maya Chen' : key === 'admin' ? 'Morgan Lee' : 'Northstar Ventures'); }} aria-pressed={role === key} data-testid={`role-${key}`} className={`flex w-full items-center gap-3.5 rounded-2xl border p-4 text-left transition-all ${role === key ? 'border-[#6d9bc6] bg-white shadow-[0_6px_20px_rgba(34,79,121,.09)] ring-2 ring-[#e1edf8]' : 'border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white'}`}>
-            <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${role === key ? 'bg-[#e9f2fb] text-[#245c91]' : 'bg-slate-100 text-slate-500'}`}><Icon className="size-[19px]" /></span>
-            <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-[#263b54]">{label}</span><span className="mt-0.5 block text-xs text-slate-500">{desc}</span></span>
-            <span className={`flex size-5 items-center justify-center rounded-full border ${role === key ? 'border-[#28669d] bg-[#28669d] text-white' : 'border-slate-300'}`}>{role === key && <Check className="size-3" />}</span>
-          </button>)}
-        </div>
-        <label className="mt-6 block text-xs font-semibold text-slate-600">Workspace name<input value={name} onChange={e => setName(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 outline-none transition focus:border-[#6e9bc4] focus:ring-4 focus:ring-[#e9f2fb]" aria-label="Workspace name" /></label>
-        <button onClick={() => onEnter(role, name.trim() || (role === 'student' ? 'Maya Chen' : role === 'admin' ? 'Morgan Lee' : 'Northstar Ventures'))} className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1e5689] text-sm font-bold text-white shadow-[0_6px_14px_rgba(30,86,137,.18)] transition hover:bg-[#164775] focus:outline-none focus:ring-4 focus:ring-[#d7e7f6]" data-testid="button-enter-workspace">Enter workspace<ArrowRight className="size-4" /></button>
-        <p className="mt-4 text-center text-xs text-slate-400">Demo data is saved in this browser only.</p>
+      <div>
+        <span className={`text-[20px] font-extrabold tracking-tight ${light ? 'text-white' : 'text-[#0f2d52]'}`}>
+          Idea<span className="text-[#3b82f6]">Bridge</span>
+        </span>
       </div>
-    </section>
-  </main>;
+    </button>
+  );
 }
 
-function Modal({ title, subtitle, onClose, children, wide = false }: { title: string; subtitle?: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
-  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#10243b]/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-5" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-    <section role="dialog" aria-modal="true" aria-labelledby="dialog-title" className={`max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl ${wide ? 'max-w-3xl' : 'max-w-xl'}`}>
-      <header className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur sm:px-7"><div><h2 id="dialog-title" className="font-[var(--app-font-serif)] text-xl font-bold tracking-[-.03em] text-[#1b304a]">{title}</h2>{subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}</div><button onClick={onClose} className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Close dialog"><X className="size-5" /></button></header>
-      <div className="px-5 py-5 sm:px-7 sm:py-6">{children}</div>
-    </section>
-  </div>;
+// Price ranges from the design
+interface PriceRange {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
 }
 
-function Metric({ label, value, note, icon: Icon, tone = 'blue' }: { label: string; value: string | number; note: string; icon: typeof BriefcaseBusiness; tone?: string }) {
-  const tones: Record<string, string> = { blue: 'bg-blue-50 text-blue-700', green: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', violet: 'bg-indigo-50 text-indigo-700' };
-  return <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_2px_7px_rgba(32,59,88,.025)]"><div className="flex items-start justify-between"><span className="text-[13px] font-medium text-slate-500">{label}</span><span className={`flex size-9 items-center justify-center rounded-xl ${tones[tone]}`}><Icon className="size-[17px]" /></span></div><div className="mt-4 font-[var(--app-font-serif)] text-[30px] font-bold leading-none tracking-[-.05em] text-[#1d3551]">{value}</div><p className="mt-2 text-xs text-slate-500">{note}</p></article>;
+const PRICE_RANGES: PriceRange[] = [
+  { id: '50+', label: '50+', min: 50, max: Infinity },
+  { id: '30-50', label: '30 - 50', min: 30, max: 50 },
+  { id: '15-30', label: '15 - 30', min: 15, max: 30 },
+  { id: '10-15', label: '10 - 15', min: 10, max: 15 },
+  { id: '5-10', label: '5 - 10', min: 5, max: 10 },
+  { id: '2-5', label: '2 - 5', min: 2, max: 5 },
+];
+
+const CATEGORIES = [
+  { id: 'Retail', label: 'Retail', icon: ShoppingBag },
+  { id: 'Manufacturing', label: 'Manufacturing', icon: Factory },
+  { id: 'Service', label: 'Service', icon: Cog },
+] as const;
+
+// Success stories data
+interface SuccessStory {
+  id: string;
+  name: string;
+  role: string;
+  quote: string;
+  avatar: string;
+  tag: 'Founders' | 'Investors' | 'Mentors';
 }
 
-function App() {
+const INITIAL_STORIES: SuccessStory[] = [
+  {
+    id: 'story-1',
+    name: 'Rohit Verma',
+    role: 'Founder, AgriTech',
+    quote: 'IdeaBridge helped me connect with the right investor. Today our startup is live!',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    tag: 'Founders',
+  },
+  {
+    id: 'story-2',
+    name: 'Ananya Sharma',
+    role: 'Investor, GrowthFund',
+    quote: 'We found an innovative student team with amazing potential through IdeaBridge.',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
+    tag: 'Investors',
+  },
+  {
+    id: 'story-3',
+    name: 'Karan Mehta',
+    role: 'Founder, EduNext',
+    quote: 'A seamless platform to showcase ideas and get genuine feedback.',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    tag: 'Founders',
+  },
+  {
+    id: 'story-4',
+    name: 'Priya Raman',
+    role: 'Co-Founder, CommonGround',
+    quote: 'From a dorm room prototype to closing our first ₹16 Lakhs grant on IdeaBridge.',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
+    tag: 'Founders',
+  },
+  {
+    id: 'story-5',
+    name: 'Vikram Singhania',
+    role: 'Managing Partner, Northstar',
+    quote: 'The verification model makes investing in early campus founders transparent and trustworthy.',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+    tag: 'Investors',
+  },
+  {
+    id: 'story-6',
+    name: 'Dr. Ramesh Verma',
+    role: 'Mentor, IIT Incubation Hub',
+    quote: 'Bridging campus R&D directly into institutional angel pipelines has never been faster.',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80',
+    tag: 'Mentors',
+  },
+];
+
+// Articles data
+interface Article {
+  id: string;
+  title: string;
+  date: string;
+  readTime: string;
+  imageUrl: string;
+  excerpt: string;
+  author: string;
+}
+
+const INITIAL_ARTICLES: Article[] = [
+  {
+    id: 'art-1',
+    title: 'How to Make Your Startup Investor Ready',
+    date: 'Mar 10, 2026',
+    readTime: '5 min read',
+    imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&auto=format&fit=crop&q=80',
+    excerpt: 'Key metrics, financial forecasts, and founder signals angel networks look for when reviewing campus grant proposals.',
+    author: 'IdeaBridge Editorial',
+  },
+  {
+    id: 'art-2',
+    title: 'Top 10 Sectors Investors are Watching in 2026',
+    date: 'Mar 5, 2026',
+    readTime: '4 min read',
+    imageUrl: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&auto=format&fit=crop&q=80',
+    excerpt: 'Agritech automation, sodium-ion batteries, and hyper-local retail are drawing massive seed activity this fiscal year.',
+    author: 'GrowthFund Insights',
+  },
+  {
+    id: 'art-3',
+    title: "From Idea to Impact: A Student's Guide",
+    date: 'Feb 28, 2026',
+    readTime: '6 min read',
+    imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&auto=format&fit=crop&q=80',
+    excerpt: 'A step-by-step roadmap for student innovators navigating university patent rights, team formation, and pilot deployments.',
+    author: 'Karan Mehta',
+  },
+];
+
+function Modal({
+  title,
+  subtitle,
+  onClose,
+  children,
+  wide = false,
+}: {
+  title: string;
+  subtitle?: string;
+  onClose: () => void;
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-[#0d2138]/50 p-0 backdrop-blur-[3px] sm:items-center sm:p-5"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+        className={`max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl ${
+          wide ? 'max-w-3xl' : 'max-w-xl'
+        }`}
+      >
+        <header className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur sm:px-7">
+          <div>
+            <h2
+              id="dialog-title"
+              className="font-[var(--app-font-serif)] text-xl font-bold tracking-[-.03em] text-[#1b304a]"
+            >
+              {title}
+            </h2>
+            {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Close dialog"
+          >
+            <X className="size-5" />
+          </button>
+        </header>
+        <div className="px-5 py-5 sm:px-7 sm:py-6">{children}</div>
+      </section>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  note,
+  icon: Icon,
+  tone = 'blue',
+}: {
+  label: string;
+  value: string | number;
+  note: string;
+  icon: typeof BriefcaseBusiness;
+  tone?: string;
+}) {
+  const tones: Record<string, string> = {
+    blue: 'bg-blue-50 text-blue-700',
+    green: 'bg-emerald-50 text-emerald-700',
+    amber: 'bg-amber-50 text-amber-700',
+    violet: 'bg-indigo-50 text-indigo-700',
+  };
+  return (
+    <article className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_2px_7px_rgba(32,59,88,.025)]">
+      <div className="flex items-start justify-between">
+        <span className="text-[13px] font-medium text-slate-500">{label}</span>
+        <span className={`flex size-9 items-center justify-center rounded-xl ${tones[tone]}`}>
+          <Icon className="size-[17px]" />
+        </span>
+      </div>
+      <div className="mt-4 font-[var(--app-font-serif)] text-[30px] font-bold leading-none tracking-[-.05em] text-[#1d3551]">
+        {value}
+      </div>
+      <p className="mt-2 text-xs text-slate-500">{note}</p>
+    </article>
+  );
+}
+
+export default function App() {
   const [data, setData] = useState<DemoData>(() => loadDemoData());
   const [role, setRole] = useState<Role | null>(null);
   const [displayName, setDisplayName] = useState('');
-  const [page, setPage] = useState<Page>('overview');
+  const [page, setPage] = useState<Page>('front');
   const [mobileNav, setMobileNav] = useState(false);
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState('All statuses');
-  const [selected, setSelected] = useState<Venture | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [submitModal, setSubmitModal] = useState(false);
+
+  // Success Stories & Articles states
+  const [storyTag, setStoryTag] = useState<'All' | 'Founders' | 'Investors' | 'Mentors'>('All');
+  const [storyPage, setStoryPage] = useState(0);
+  const [articles, setArticles] = useState<Article[]>(INITIAL_ARTICLES);
+  const [writeBlogModal, setWriteBlogModal] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+
+  // Front page states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRange, setSelectedRange] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Retail');
+  const [selectedVenture, setSelectedVenture] = useState<Venture | null>(null);
   const [toast, setToast] = useState('');
 
-  const commit = (next: DemoData) => { setData(next); saveDemoData(next); };
-  const inform = (message: string) => { setToast(message); window.setTimeout(() => setToast(''), 3200); };
-  const enter = (nextRole: Role, name: string) => { setRole(nextRole); setDisplayName(name); setPage('overview'); };
-  const signOut = () => { setRole(null); setDisplayName(''); setPage('overview'); setSelected(null); };
-  const mine = useMemo(() => data.ventures.filter(v => v.founder === displayName || (displayName === 'Maya Chen' && v.founder === 'Maya Chen')), [data.ventures, displayName]);
-  const approved = useMemo(() => data.ventures.filter(v => v.status === 'Approved'), [data.ventures]);
-  const nav: { key: Page; label: string; icon: typeof LayoutDashboard; group?: string }[] =
-    role === 'student'
-      ? [{ key: 'overview', label: 'Overview', icon: LayoutDashboard }, { key: 'applications', label: 'My applications', icon: FileText }, { key: 'submit', label: 'New application', icon: FilePlus2 }]
-      : role === 'admin'
-        ? [{ key: 'overview', label: 'Overview', icon: LayoutDashboard }, { key: 'review', label: 'Review queue', icon: ShieldCheck }]
-        : [{ key: 'overview', label: 'Overview', icon: LayoutDashboard }, { key: 'discover', label: 'Discover ventures', icon: Compass }];
+  const commit = (next: DemoData) => {
+    setData(next);
+    saveDemoData(next);
+  };
+
+  const inform = (message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(''), 3200);
+  };
+
+  const enterWorkspace = (nextRole: Role, name: string) => {
+    setRole(nextRole);
+    setDisplayName(name);
+    setPage('overview');
+    setMenuOpen(false);
+    inform(`Welcome to ${roleTitles[nextRole]} workspace, ${name.split(' ')[0]}.`);
+  };
+
+  const signOut = () => {
+    setRole(null);
+    setDisplayName('');
+    setPage('front');
+    setSelectedVenture(null);
+  };
 
   const changeVenture = (id: string, patch: Partial<Venture>) => {
-    commit({ ...data, ventures: data.ventures.map(v => v.id === id ? { ...v, ...patch } : v) });
-    setSelected(current => current?.id === id ? { ...current, ...patch } : current);
+    commit({
+      ...data,
+      ventures: data.ventures.map((v) => (v.id === id ? { ...v, ...patch } : v)),
+    });
+    setSelectedVenture((current) => (current?.id === id ? { ...current, ...patch } : current));
   };
+
   const reset = () => {
-    if (window.confirm('Reset all VentureBridge demo changes and restore the original sample data?')) {
-      const fresh = resetDemoData(); setData(fresh); setSelected(null); setPage('overview'); inform('Demo data has been restored.');
+    if (window.confirm('Reset all IdeaBridge demo changes and restore sample projects?')) {
+      const fresh = resetDemoData();
+      setData(fresh);
+      setSelectedVenture(null);
+      setPage('front');
+      inform('Sample projects and data have been restored.');
     }
   };
-
-  if (!role) return <Login onEnter={enter} />;
-  const greeting = role === 'student' ? displayName.split(' ')[0] : role === 'admin' ? 'Morgan' : displayName;
-  const openSubmit = () => { setPage('submit'); };
-
-  const navLink = (item: typeof nav[number]) => <button key={item.key} onClick={() => { if (item.key === 'submit') openSubmit(); else setPage(item.key); setMobileNav(false); }} className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition ${page === item.key ? 'bg-[#eaf2fa] text-[#1c578a]' : 'text-slate-500 hover:bg-slate-50 hover:text-[#243c57]'}`} data-testid={`nav-${item.key}`}><item.icon className={`size-[17px] ${page === item.key ? 'text-[#286697]' : 'text-slate-400 group-hover:text-slate-600'}`} />{item.label}{item.key === 'review' && data.ventures.filter(v => v.status === 'Under review').length > 0 && <span className="ml-auto rounded-full bg-[#dceaf7] px-2 py-0.5 text-[10px] font-bold text-[#285d8c]">{data.ventures.filter(v => v.status === 'Under review').length}</span>}</button>;
-
-  const filteredAdmin = data.ventures.filter(v => {
-    const term = query.toLowerCase().trim();
-    const matches = !term || `${v.name} ${v.founder} ${v.university} ${v.category}`.toLowerCase().includes(term);
-    return matches && (filter === 'All statuses' || v.status === filter);
-  });
-  const filteredMine = mine.filter(v => `${v.name} ${v.category} ${v.status}`.toLowerCase().includes(query.toLowerCase()));
-  const filteredApproved = approved.filter(v => `${v.name} ${v.tagline} ${v.category} ${v.university}`.toLowerCase().includes(query.toLowerCase()));
 
   const addApplication = (form: HTMLFormElement) => {
     const values = new FormData(form);
     const item = createVenture({
-      founder: String(values.get('founder')), university: String(values.get('university')), email: String(values.get('email')),
-      name: String(values.get('name')), tagline: String(values.get('tagline')), category: String(values.get('category')),
-      description: String(values.get('description')), businessModel: String(values.get('businessModel')),
-      useOfFunds: String(values.get('useOfFunds')), requestedAmount: Number(values.get('requestedAmount')),
+      founder: String(values.get('founder')),
+      university: String(values.get('university')),
+      email: String(values.get('email')),
+      name: String(values.get('name')),
+      tagline: String(values.get('tagline')),
+      category: String(values.get('category')),
+      description: String(values.get('description')),
+      businessModel: String(values.get('businessModel')),
+      useOfFunds: String(values.get('useOfFunds')),
+      requestedAmount: Number(values.get('requestedAmount')),
     });
     commit({ ...data, ventures: [item, ...data.ventures] });
-    setPage('applications'); setQuery(''); inform('Application submitted. It is now in the review queue.');
+    setSubmitModal(false);
+    inform('Your project has been listed successfully! It is now visible in the showcase.');
   };
+
+  const addArticle = (form: HTMLFormElement) => {
+    const values = new FormData(form);
+    const newArt: Article = {
+      id: `art-${Date.now()}`,
+      title: String(values.get('title')),
+      author: String(values.get('author') || 'Student Contributor'),
+      readTime: '4 min read',
+      date: 'Today',
+      excerpt: String(values.get('content')).slice(0, 140) + '...',
+      imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&auto=format&fit=crop&q=80',
+    };
+    setArticles([newArt, ...articles]);
+    setWriteBlogModal(false);
+    inform('Your article has been published to the IdeaBridge Blog!');
+  };
+
   const toggleInterest = (venture: Venture) => {
-    const interested = venture.interests.includes(displayName);
-    changeVenture(venture.id, { interests: interested ? venture.interests.filter(name => name !== displayName) : [...venture.interests, displayName] });
-    inform(interested ? 'Interest withdrawn.' : 'Your interest has been shared with the founder.');
+    const userIdentifier = displayName || 'Interested Investor';
+    const interested = venture.interests.includes(userIdentifier);
+    changeVenture(venture.id, {
+      interests: interested
+        ? venture.interests.filter((name) => name !== userIdentifier)
+        : [...venture.interests, userIdentifier],
+    });
+    inform(interested ? 'Interest withdrawn.' : 'Your interest has been signaled to the founder!');
   };
 
-  const pageTitle = page === 'overview' ? 'Overview' : page === 'applications' ? 'My applications' : page === 'review' ? 'Review queue' : page === 'discover' ? 'Discover ventures' : 'New application';
-  const pageSubtitle = page === 'overview'
-    ? role === 'student' ? 'A clear view of where your ideas stand.' : role === 'admin' ? 'A considered pipeline for campus innovation.' : 'Student ventures ready for a closer look.'
-    : page === 'applications' ? 'Track every submission and the feedback behind each decision.'
-      : page === 'review' ? 'Review submissions, share guidance, and allocate budgets.'
-        : page === 'discover' ? 'Explore approved ventures and signal where you see potential.'
-          : 'Share the idea, the plan, and what funding would make possible.';
+  // Top 3 Featured Highlights
+  const topFeatured = useMemo(() => {
+    return data.ventures.slice(0, 3);
+  }, [data.ventures]);
 
-  const renderTable = (ventures: Venture[], onSelect: (venture: Venture) => void, showFounder = false) => <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-    <div className="overflow-x-auto"><table className="w-full min-w-[690px] text-left"><thead><tr className="border-b border-slate-100 bg-[#f8fafc] text-[10px] font-bold uppercase tracking-[.12em] text-slate-400"><th className="px-5 py-3.5">Venture</th>{showFounder && <th className="px-4 py-3.5">Founder</th>}<th className="px-4 py-3.5">Requested</th><th className="px-4 py-3.5">Submitted</th><th className="px-4 py-3.5">Status</th><th className="w-12 px-4 py-3.5"></th></tr></thead>
-      <tbody>{ventures.map(v => <tr key={v.id} onClick={() => onSelect(v)} tabIndex={0} onKeyDown={e => { if (e.key === 'Enter') onSelect(v); }} className="cursor-pointer border-b border-slate-100 last:border-0 transition hover:bg-[#f9fbfd]" data-testid={`row-venture-${v.id}`}><td className="px-5 py-4"><div className="font-semibold text-[#263d58]">{v.name}</div><div className="mt-1 text-xs text-slate-500">{v.category}</div></td>{showFounder && <td className="px-4 py-4"><div className="text-sm font-medium text-slate-700">{v.founder}</div><div className="mt-1 text-xs text-slate-400">{v.university}</div></td>}<td className="px-4 py-4 text-sm font-medium text-slate-700">{money(v.requestedAmount)}</td><td className="px-4 py-4 text-sm text-slate-500">{dateLabel(v.createdAt)}</td><td className="px-4 py-4"><StatusBadge status={v.status} /></td><td className="px-4 py-4 text-slate-400"><ChevronRight className="size-4" /></td></tr>)}</tbody></table></div>
-    {ventures.length === 0 && <EmptyState icon={FileText} title="Nothing here yet" body="Try adjusting the search or status filter." />}
-  </div>;
+  // Grouped projects by price range for the range rows
+  const rangeGroups = useMemo(() => {
+    const map: Record<string, Venture[]> = {};
+    PRICE_RANGES.forEach((r) => {
+      map[r.id] = data.ventures.filter((v) => {
+        const amt = v.requestedAmount >= 1000 ? v.requestedAmount / 1000 : v.requestedAmount;
+        const matchesRange = v.priceRange === r.id || (amt >= r.min && (r.max === Infinity ? amt >= r.min : amt <= r.max));
+        if (!matchesRange) return false;
 
-  return <div className="min-h-[100dvh] bg-[#f6f8fb]">
-    {mobileNav && <button className="fixed inset-0 z-30 bg-[#142b45]/35 md:hidden" onClick={() => setMobileNav(false)} aria-label="Close navigation" />}
-    <aside className={`fixed inset-y-0 left-0 z-40 flex w-[256px] flex-col border-r border-[#e7ebf1] bg-white px-4 transition-transform duration-200 md:translate-x-0 ${mobileNav ? 'translate-x-0' : '-translate-x-full'}`}>
-      <div className="flex h-[76px] items-center justify-between px-2"><BrandMark /><button className="rounded-lg p-2 text-slate-400 md:hidden" onClick={() => setMobileNav(false)} aria-label="Close menu"><X className="size-5" /></button></div>
-      <div className="mx-1 mb-6 mt-4 flex items-center gap-3 rounded-xl border border-slate-100 bg-[#f8fafc] p-3"><div className="flex size-9 items-center justify-center rounded-lg bg-[#e7eff8] text-[#245887]"><Building2 className="size-[17px]" /></div><div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-[#2d4058]">Campus venture fund</p><p className="mt-0.5 text-[10px] text-slate-400">2024 – 25 cohort</p></div><ChevronDown className="size-3.5 text-slate-400" /></div>
-      <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">Workspace</div><nav className="space-y-1">{nav.map(navLink)}</nav>
-      {role === 'student' && <div className="mt-auto mb-4 rounded-2xl border border-[#e5edf5] bg-[#f5f9fd] p-4"><div className="flex size-8 items-center justify-center rounded-lg bg-white text-[#3a6f9e] shadow-sm"><CircleHelp className="size-4" /></div><p className="mt-3 text-xs font-bold text-[#29415c]">Need a hand?</p><p className="mt-1 text-[11px] leading-5 text-slate-500">Your program team is here to help sharpen your application.</p><button onClick={() => inform('Contact your campus program team for application support.')} className="mt-2 text-[11px] font-bold text-[#28618f] hover:underline">Get application support <ArrowRight className="ml-1 inline size-3" /></button></div>}
-      <div className="border-t border-slate-100 py-4"><button onClick={reset} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-[#243c57]" data-testid="button-reset-demo"><SlidersHorizontal className="size-4 text-slate-400" />Reset demo data</button></div>
-    </aside>
-    <div className="md:pl-[256px]">
-      <header className="sticky top-0 z-20 flex h-[68px] items-center justify-between border-b border-[#e7ebf1] bg-white/95 px-4 backdrop-blur-md sm:px-7 lg:px-10">
-        <div className="flex items-center gap-3"><button className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 md:hidden" onClick={() => setMobileNav(true)} aria-label="Open navigation"><Menu className="size-5" /></button><div className="hidden items-center gap-2 text-xs text-slate-400 sm:flex"><span>Workspace</span><ChevronRight className="size-3" /><span className="font-semibold text-slate-600">{pageTitle}</span></div><h1 className="font-[var(--app-font-serif)] text-[17px] font-bold tracking-[-.035em] text-[#203752] sm:hidden">{pageTitle}</h1></div>
-        <div className="flex items-center gap-2 sm:gap-4"><div className="hidden items-center gap-2 rounded-full border border-[#e7ebf0] bg-[#fbfcfd] px-3 py-1.5 sm:flex"><span className="size-1.5 rounded-full bg-emerald-500" /><span className="text-[11px] font-medium text-slate-500">{roleTitles[role]}</span></div><button className="relative rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Notifications" onClick={() => inform(role === 'student' ? 'You are all caught up on application updates.' : 'You are all caught up.')}><Bell className="size-[18px]" /><span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-[#477eae]" /></button><div className="hidden h-7 w-px bg-slate-200 sm:block" /><button onClick={signOut} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-50" aria-label="Sign out"><span className="flex size-8 items-center justify-center rounded-full bg-[#e9f0f7] text-[11px] font-bold text-[#315f88]">{displayName.split(/\s+/).map(s => s[0]).join('').slice(0, 2).toUpperCase()}</span><span className="hidden sm:block"><span className="block max-w-36 truncate text-xs font-bold text-slate-700">{displayName}</span><span className="mt-0.5 block text-[10px] text-slate-400">Switch role</span></span><LogOut className="ml-1 hidden size-3.5 text-slate-400 sm:block" /></button></div>
-      </header>
-      <main className="mx-auto max-w-[1440px] px-4 pb-12 pt-7 sm:px-7 lg:px-10">
-        <div className="mb-7 flex flex-wrap items-end justify-between gap-4 animate-rise"><div><p className="mb-1 text-[11px] font-bold uppercase tracking-[.15em] text-[#6686a5]">{role === 'student' ? 'Founder workspace' : role === 'admin' ? 'Program operations' : 'Investment workspace'}</p><h2 className="font-[var(--app-font-serif)] text-[27px] font-bold tracking-[-.045em] text-[#1d3551] sm:text-[30px]">{page === 'overview' ? `Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, ${greeting}.` : pageTitle}</h2><p className="mt-1.5 text-sm text-slate-500">{pageSubtitle}</p></div>
-          {role === 'student' && page !== 'submit' && <button onClick={openSubmit} className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#1e5689] px-4 text-xs font-bold text-white shadow-sm transition hover:bg-[#164775]" data-testid="button-new-application"><FilePlus2 className="size-4" />Start an application</button>}
-          {role === 'admin' && page === 'review' && <button onClick={reset} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"><SlidersHorizontal className="size-4" />Reset demo data</button>}
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          const matches =
+            v.name.toLowerCase().includes(q) ||
+            v.tagline.toLowerCase().includes(q) ||
+            v.category.toLowerCase().includes(q) ||
+            v.founder.toLowerCase().includes(q);
+          if (!matches) return false;
+        }
+
+        return true;
+      });
+    });
+    return map;
+  }, [data.ventures, searchQuery]);
+
+  // Filtered stories for Tab Slider
+  const filteredStories = useMemo(() => {
+    if (storyTag === 'All') return INITIAL_STORIES;
+    return INITIAL_STORIES.filter((s) => s.tag === storyTag);
+  }, [storyTag]);
+
+  // Paginated/windowed stories for the slider (3 per slide on desktop, responsive)
+  const currentStories = useMemo(() => {
+    const start = storyPage * 3;
+    const items = filteredStories.slice(start, start + 3);
+    if (items.length < 3) {
+      // Loop or fill if needed
+      return filteredStories.slice(0, 3);
+    }
+    return items;
+  }, [filteredStories, storyPage]);
+
+  // Workspace sub-collections
+  const mine = useMemo(
+    () =>
+      data.ventures.filter(
+        (v) =>
+          v.founder === displayName ||
+          (displayName === 'Maya Chen' && v.founder === 'Maya Chen'),
+      ),
+    [data.ventures, displayName],
+  );
+  const approved = useMemo(
+    () => data.ventures.filter((v) => v.status === 'Approved'),
+    [data.ventures],
+  );
+
+  // If in workspace mode (role is set and page !== 'front')
+  if (role && page !== 'front') {
+    return renderWorkspaceView({
+      role,
+      displayName,
+      page,
+      setPage,
+      data,
+      mine,
+      approved,
+      mobileNav,
+      setMobileNav,
+      signOut,
+      reset,
+      selectedVenture,
+      setSelectedVenture,
+      changeVenture,
+      toggleInterest,
+      addApplication,
+      inform,
+      toast,
+    });
+  }
+
+  // FRONT OPENING PAGE (NEW CONCEPT)
+  return (
+    <div className="min-h-screen bg-[#fafbfc] text-[#1c2e45] selection:bg-blue-100 selection:text-blue-900 flex flex-col justify-between">
+      <div>
+        {/* 1. TOP HEADER & SEARCH BAR */}
+        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+            {/* Logo */}
+            <IdeaBridgeLogo onClick={() => { setSelectedRange(null); setSelectedCategory('Retail'); setSearchQuery(''); }} />
+
+            {/* Central Search Bar */}
+            <div className="max-w-2xl flex-1 px-2 sm:px-6">
+              <div className="relative w-full">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search projects, startups, founders, or keywords..."
+                  className="h-10 w-full rounded-full border border-slate-200 bg-[#f8fafc] pl-10 pr-9 text-xs sm:text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    aria-label="Clear search"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Right Menu Button */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSubmitModal(true)}
+                className="hidden sm:inline-flex h-9 items-center gap-1.5 rounded-full bg-blue-50 px-3.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
+              >
+                <Plus className="size-3.5" />
+                <span>List Project</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100"
+                aria-label="Toggle menu"
+              >
+                <Menu className="size-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* 2. PRICE RANGE ROW */}
+          <div className="border-t border-slate-100 bg-[#fbfcfd] px-4 py-2.5">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+              {PRICE_RANGES.slice().reverse().map((range) => {
+                const active = selectedRange === range.id;
+                const count = rangeGroups[range.id]?.length || 0;
+                return (
+                  <button
+                    key={range.id}
+                    type="button"
+                    onClick={() => setSelectedRange(active ? null : range.id)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold transition ${
+                      active
+                        ? 'bg-[#1877f2] text-white shadow-sm ring-2 ring-blue-300/40'
+                        : 'border border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>₹ {range.label}</span>
+                    {count > 0 && (
+                      <span
+                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                          active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+              {selectedRange && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedRange(null)}
+                  className="text-[11px] font-medium text-slate-400 underline decoration-slate-300 underline-offset-2 hover:text-slate-600"
+                >
+                  Show all ranges
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 3. CATEGORY TABS (Retail, Manufacturing, Service) */}
+          <div className="border-t border-slate-100 bg-white px-4">
+            <div className="mx-auto flex max-w-7xl items-center justify-center gap-6 sm:gap-10">
+              {CATEGORIES.map(({ id, label, icon: Icon }) => {
+                const active = selectedCategory === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setSelectedCategory(active ? 'All' : id)}
+                    className={`group relative flex items-center gap-2 py-3 text-xs sm:text-sm font-semibold transition ${
+                      active ? 'text-[#1877f2]' : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Icon
+                      className={`size-4 transition ${
+                        active ? 'text-[#1877f2]' : 'text-slate-400 group-hover:text-slate-600'
+                      }`}
+                    />
+                    <span>{label}</span>
+                    {active && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#1877f2]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </header>
+
+        {/* DRAWER MENU / ROLE SELECTION */}
+        {menuOpen && (
+          <div
+            className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => setMenuOpen(false)}
+          >
+            <div
+              className="w-full max-w-xs bg-white p-6 shadow-2xl animate-rise"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <IdeaBridgeLogo />
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+              <div className="mt-5 space-y-4">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Workspace Roles
+                </p>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => enterWorkspace('student', 'Maya Chen')}
+                    className="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-3 text-left transition hover:border-blue-400 hover:bg-blue-50/50"
+                  >
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+                      <GraduationCap className="size-4" />
+                    </div>
+                    <div>
+                      <span className="block text-xs font-bold text-slate-800">Student Founder</span>
+                      <span className="block text-[11px] text-slate-500">Submit and track ideas</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => enterWorkspace('investor', 'Northstar Ventures')}
+                    className="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-3 text-left transition hover:border-blue-400 hover:bg-blue-50/50"
+                  >
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                      <HandCoins className="size-4" />
+                    </div>
+                    <div>
+                      <span className="block text-xs font-bold text-slate-800">Investor Workspace</span>
+                      <span className="block text-[11px] text-slate-500">Discover and fund ventures</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => enterWorkspace('admin', 'Morgan Lee')}
+                    className="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-3 text-left transition hover:border-blue-400 hover:bg-blue-50/50"
+                  >
+                    <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700">
+                      <ShieldCheck className="size-4" />
+                    </div>
+                    <div>
+                      <span className="block text-xs font-bold text-slate-800">Program Administrator</span>
+                      <span className="block text-[11px] text-slate-500">Review and allocate funding</span>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setSubmitModal(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow transition hover:bg-blue-700"
+                  >
+                    <Plus className="size-4" />
+                    <span>List Your Project</span>
+                  </button>
+                </div>
+
+                <div className="border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="flex w-full items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-800"
+                  >
+                    <SlidersHorizontal className="size-3.5 text-slate-400" />
+                    <span>Reset demo data</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MAIN CONTAINER */}
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-12">
+          {/* 4. HERO BANNER CARD */}
+          <section className="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-r from-[#edf5ff] via-[#e5f0fc] to-[#e0edfb] p-6 sm:p-10 shadow-[0_4px_20px_rgba(23,103,197,.06)]">
+            <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-blue-200/25 blur-3xl" />
+            <div className="pointer-events-none absolute -left-16 -bottom-16 size-72 rounded-full bg-sky-200/30 blur-2xl" />
+
+            <div className="relative grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
+              {/* Left Content */}
+              <div className="space-y-4">
+                <span className="inline-block text-[11px] font-extrabold uppercase tracking-widest text-[#156ec9]">
+                  Connect Ideas With Opportunities
+                </span>
+                <h1 className="font-[var(--app-font-serif)] text-3xl font-extrabold leading-[1.15] tracking-tight text-[#0f2d52] sm:text-4xl lg:text-[42px]">
+                  Turn Your Ideas Into Real-World Impact
+                </h1>
+                <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
+                  A platform where students and innovators showcase ideas, and investors discover
+                  high-potential opportunities.
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSubmitModal(true)}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1877f2] px-6 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#1264ce] focus:outline-none focus:ring-4 focus:ring-blue-200"
+                  >
+                    <span>List Your Project</span>
+                    <ArrowRight className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => enterWorkspace('investor', 'Northstar Ventures')}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-300/80 bg-white/90 px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white hover:text-blue-700"
+                  >
+                    <span>Explore Investors</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Graphic / Doodle Composition */}
+              <div className="relative flex items-center justify-center lg:justify-end">
+                <div className="relative w-full max-w-md rounded-2xl bg-white/60 p-5 shadow-sm backdrop-blur-sm border border-white/80">
+                  <div className="absolute -top-3.5 right-4 z-10 flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-bold text-blue-700 shadow-sm">
+                    <Sparkles className="size-3 text-amber-500 fill-amber-400" />
+                    <span>+ Ideas Build Tomorrow</span>
+                  </div>
+
+                  <div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-blue-600 text-white shadow-md ring-4 ring-white">
+                        <GraduationCap className="size-7" />
+                      </div>
+                      <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+                        <svg viewBox="0 0 24 24" className="size-5 fill-current">
+                          <path d="M12 2.5s-4 4.5-4 10.5c0 2 1 3.5 1 3.5l1.5-1.5L12 18l1.5-3 1.5 1.5s1-1.5 1-3.5C16 7 12 2.5 12 2.5z" />
+                          <circle cx="12" cy="9" r="1.5" fill="#fff" />
+                        </svg>
+                      </div>
+                      <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-md ring-4 ring-white">
+                        <User className="size-7" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="font-semibold text-slate-800 text-sm">
+                        Collaborative Student Innovation
+                      </p>
+                      <p className="text-xs text-slate-500 max-w-xs">
+                        Join 120+ student startups raising non-dilutive campus grants and angel investments.
+                      </p>
+                    </div>
+
+                    <div className="grid w-full grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-center">
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">100%</p>
+                        <p className="text-[10px] text-slate-400">Campus Verified</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">₹ 2.4 Cr+</p>
+                        <p className="text-[10px] text-slate-400">Grants Funded</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">45+</p>
+                        <p className="text-[10px] text-slate-400">Active Mentors</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. FEATURED PROJECTS SECTION MATCHING EXACT SCREENSHOT */}
+          <section className="space-y-6">
+            {/* Header Row: Featured Projects & View More -> */}
+            <div className="flex items-center justify-between">
+              <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
+                Featured Projects
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedRange(null);
+                  inform('Showing all featured pipeline ventures.');
+                }}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
+              >
+                <span>View More</span>
+                <ArrowRight className="size-3.5" />
+              </button>
+            </div>
+
+            {/* Top 3 Featured Highlight Cards */}
+            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+              {topFeatured.map((venture) => (
+                <FeaturedHighlightCard
+                  key={venture.id}
+                  venture={venture}
+                  onSelect={() => setSelectedVenture(venture)}
+                  onInterest={() => toggleInterest(venture)}
+                  isInterested={venture.interests.includes(displayName || 'Interested Investor')}
+                />
+              ))}
+            </div>
+
+            {/* Price Range Rows with Left Side-Panel Indicators */}
+            <div className="space-y-3 pt-2">
+              {PRICE_RANGES.map((range) => {
+                const ventures = rangeGroups[range.id] || [];
+                const isRangeSelected = selectedRange === range.id;
+
+                if (selectedRange && !isRangeSelected) {
+                  return null;
+                }
+
+                return (
+                  <div
+                    key={range.id}
+                    className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 rounded-2xl border p-3 transition ${
+                      isRangeSelected
+                        ? 'border-blue-400 bg-blue-50/40 shadow-sm'
+                        : 'border-slate-200/80 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    {/* Left Side Panel Range Tag with Blue Line Indicator */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedRange(isRangeSelected ? null : range.id)}
+                      className="flex shrink-0 items-center gap-3 px-3 py-1 text-left group"
+                      title={`Click to filter by ${range.label}`}
+                    >
+                      <div className="h-7 w-1 rounded-full bg-[#1877f2]" />
+                      <span className="w-16 text-sm font-extrabold text-[#112d4e] group-hover:text-blue-600 transition">
+                        {range.label}
+                      </span>
+                    </button>
+
+                    {/* 3 Compact Project Cards in this Row */}
+                    <div className="grid flex-1 gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                      {ventures.slice(0, 3).map((v) => (
+                        <CompactProjectCard
+                          key={v.id}
+                          venture={v}
+                          onSelect={() => setSelectedVenture(v)}
+                          onInterest={() => toggleInterest(v)}
+                          isInterested={v.interests.includes(displayName || 'Interested Investor')}
+                        />
+                      ))}
+                      {ventures.length === 0 && (
+                        <div className="col-span-3 py-3 text-center text-xs text-slate-400">
+                          No projects currently listed in ₹ {range.label}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Circular Blue Arrow Button */}
+                    <div className="hidden lg:flex shrink-0 items-center justify-center pl-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedRange(isRangeSelected ? null : range.id);
+                          inform(`Viewing projects in range ₹ ${range.label}`);
+                        }}
+                        className="flex size-9 items-center justify-center rounded-full bg-[#eef5fd] text-[#1877f2] transition hover:bg-blue-100 hover:scale-105"
+                        aria-label={`View more in ${range.label}`}
+                      >
+                        <ArrowRight className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {selectedRange && (
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRange(null)}
+                    className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+                  >
+                    Show All Price Ranges
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* 6. SUCCESS STORIES SECTION (TAB SLIDER FORM) */}
+          <section className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
+                  Success Stories
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Real experiences from founders and investors who connected on IdeaBridge.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Tab Filter Pills */}
+                <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-2xs">
+                  {(['All', 'Founders', 'Investors', 'Mentors'] as const).map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        setStoryTag(tag);
+                        setStoryPage(0);
+                      }}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                        storyTag === tag
+                          ? 'bg-[#1877f2] text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Slider Controls */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setStoryPage((prev) => Math.max(0, prev - 1))}
+                    disabled={storyPage === 0}
+                    className="flex size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition"
+                    aria-label="Previous story slide"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStoryPage((prev) => (prev + 1) * 3 < filteredStories.length ? prev + 1 : 0)}
+                    className="flex size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition"
+                    aria-label="Next story slide"
+                  >
+                    <ChevronRight className="size-4" />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => inform('More verified founder stories coming soon!')}
+                  className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
+                >
+                  <span>View More</span>
+                  <ArrowRight className="size-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Slider Cards Grid / Responsive Carousel */}
+            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+              {currentStories.map((story) => (
+                <div
+                  key={story.id}
+                  className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                >
+                  <div className="flex gap-4 items-start">
+                    {/* User Avatar */}
+                    <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-2 ring-slate-100">
+                      <img
+                        src={story.avatar}
+                        alt={story.name}
+                        className="size-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    {/* Quote & Info */}
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex items-center gap-1 text-blue-500">
+                        <Quote className="size-4 fill-current rotate-180 opacity-70" />
+                      </div>
+                      <p className="text-xs leading-relaxed text-slate-700 italic">
+                        "{story.quote}"
+                      </p>
+                      <div className="pt-1">
+                        <h4 className="text-xs font-bold text-[#112d4e]">
+                          {story.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          {story.role}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 7. ARTICLES & WRITE BLOG SECTION */}
+          <section className="space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
+                  Articles & Write Blog
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Insights, investor checklists, and startup advice from the community.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setWriteBlogModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3.5 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
+                >
+                  <PenSquare className="size-3.5" />
+                  <span>Write Blog</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => inform('Viewing all community startup articles.')}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
+                >
+                  <span>View More</span>
+                  <ArrowRight className="size-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Articles Grid */}
+            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+              {articles.map((art) => (
+                <article
+                  key={art.id}
+                  onClick={() => setSelectedArticle(art)}
+                  className="group flex cursor-pointer items-start gap-4 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                >
+                  {/* Thumbnail */}
+                  <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                    <img
+                      src={art.imageUrl}
+                      alt={art.title}
+                      className="size-full object-cover transition duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  {/* Text Content */}
+                  <div className="min-w-0 flex-1 flex flex-col justify-between h-20">
+                    <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold leading-snug text-[#112d4e] group-hover:text-blue-600 transition">
+                      {art.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Clock3 className="size-3" />
+                        {art.date}
+                      </span>
+                      <span>·</span>
+                      <span>{art.readTime}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
+
+      {/* 8. DARK FOOTER MATCHING EXACT REFERENCE IMAGE */}
+      <footer className="mt-20 border-t border-slate-800 bg-[#0a1e36] text-white">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+          {/* Main Footer Row */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Left Brand & Tagline */}
+            <div className="space-y-1">
+              <IdeaBridgeLogo light />
+              <p className="text-xs text-blue-200/70">
+                Connecting innovative minds with growth opportunities.
+              </p>
+            </div>
+
+            {/* Middle Nav Links */}
+            <nav className="flex flex-wrap items-center gap-5 sm:gap-7 text-xs font-medium text-slate-300">
+              <button
+                type="button"
+                onClick={() => inform('IdeaBridge connects campus founders with grant programs and angel investors.')}
+                className="hover:text-white transition"
+              >
+                About
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.scrollTo({ top: 380, behavior: 'smooth' });
+                }}
+                className="hover:text-white transition"
+              >
+                Browse Projects
+              </button>
+              <button
+                type="button"
+                onClick={() => enterWorkspace('investor', 'Northstar Ventures')}
+                className="hover:text-white transition"
+              >
+                For Investors
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.scrollTo({ top: document.body.scrollHeight - 700, behavior: 'smooth' });
+                }}
+                className="hover:text-white transition"
+              >
+                Blog
+              </button>
+              <button
+                type="button"
+                onClick={() => inform('Contact us at support@ideabridge.io')}
+                className="hover:text-white transition"
+              >
+                Contact
+              </button>
+            </nav>
+
+            {/* Divider line and Social Icons */}
+            <div className="flex items-center gap-4">
+              <span className="hidden lg:block h-6 w-px bg-white/20" />
+              <div className="flex items-center gap-3 text-slate-400">
+                <a
+                  href="#linkedin"
+                  onClick={(e) => { e.preventDefault(); inform('Follow IdeaBridge on LinkedIn'); }}
+                  className="p-1 hover:text-white transition"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="size-4" />
+                </a>
+                <a
+                  href="#twitter"
+                  onClick={(e) => { e.preventDefault(); inform('Follow IdeaBridge on X / Twitter'); }}
+                  className="p-1 hover:text-white transition"
+                  aria-label="Twitter"
+                >
+                  <Twitter className="size-4" />
+                </a>
+                <a
+                  href="#instagram"
+                  onClick={(e) => { e.preventDefault(); inform('Follow IdeaBridge on Instagram'); }}
+                  className="p-1 hover:text-white transition"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="size-4" />
+                </a>
+                <a
+                  href="#youtube"
+                  onClick={(e) => { e.preventDefault(); inform('Watch IdeaBridge on YouTube'); }}
+                  className="p-1 hover:text-white transition"
+                  aria-label="YouTube"
+                >
+                  <Youtube className="size-4" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Copyright and Legal Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10 pt-5 text-[11px] text-slate-400">
+            <div>
+              <span>© 2026 IdeaBridge. All rights reserved.</span>
+            </div>
+            <div className="flex items-center gap-4 sm:gap-6">
+              <button
+                type="button"
+                onClick={() => inform('Privacy Policy: All student ideas remain proprietary.')}
+                className="hover:text-slate-200 transition"
+              >
+                Privacy Policy
+              </button>
+              <button
+                type="button"
+                onClick={() => inform('Terms of Service: Standard collegiate ecosystem terms apply.')}
+                className="hover:text-slate-200 transition"
+              >
+                Terms of Service
+              </button>
+              <button
+                type="button"
+                onClick={() => inform('IdeaBridge Support: Reach out via support@ideabridge.io')}
+                className="hover:text-slate-200 transition"
+              >
+                Support
+              </button>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* MODALS */}
+      {/* 1. Project Detail Modal */}
+      {selectedVenture && (
+        <Modal
+          title={selectedVenture.name}
+          subtitle={selectedVenture.tagline}
+          onClose={() => setSelectedVenture(null)}
+          wide
+        >
+          <VentureDetails
+            venture={selectedVenture}
+            role={role || 'investor'}
+            displayName={displayName || 'Interested Investor'}
+            onDecision={(status, feedback, budget) => {
+              changeVenture(selectedVenture.id, {
+                status,
+                feedback,
+                ...(status === 'Approved' ? { approvedBudget: budget } : {}),
+              });
+              inform(`Decision updated for ${selectedVenture.name}.`);
+            }}
+            onInterest={() => toggleInterest(selectedVenture)}
+          />
+        </Modal>
+      )}
+
+      {/* 2. Project Submission Modal */}
+      {submitModal && (
+        <Modal
+          title="List Your Project on IdeaBridge"
+          subtitle="Share your concept with campus reviewers and active investors."
+          onClose={() => setSubmitModal(false)}
+          wide
+        >
+          <ApplicationForm
+            name={displayName || 'Student Founder'}
+            onSubmit={addApplication}
+            onCancel={() => setSubmitModal(false)}
+          />
+        </Modal>
+      )}
+
+      {/* 3. Write Blog Modal */}
+      {writeBlogModal && (
+        <Modal
+          title="Write a Blog / Article"
+          subtitle="Share your startup learnings, founder tips, or market research."
+          onClose={() => setWriteBlogModal(false)}
+          wide
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              addArticle(e.currentTarget);
+            }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-xs font-semibold text-slate-700">Article Title</label>
+              <input
+                name="title"
+                required
+                placeholder="e.g. 5 Lessons from Building a Campus Pilot"
+                className="mt-1 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700">Author Name</label>
+              <input
+                name="author"
+                placeholder={displayName || 'Your Name / Startup'}
+                defaultValue={displayName}
+                className="mt-1 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700">Article Content</label>
+              <textarea
+                name="content"
+                required
+                rows={5}
+                placeholder="Write your article thoughts here..."
+                className="mt-1 w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+              <button
+                type="button"
+                onClick={() => setWriteBlogModal(false)}
+                className="h-9 rounded-lg border border-slate-200 px-4 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="h-9 rounded-lg bg-blue-600 px-4 text-xs font-bold text-white hover:bg-blue-700"
+              >
+                Publish Article
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* 4. Article Read Modal */}
+      {selectedArticle && (
+        <Modal
+          title={selectedArticle.title}
+          subtitle={`${selectedArticle.date} · ${selectedArticle.readTime} · By ${selectedArticle.author}`}
+          onClose={() => setSelectedArticle(null)}
+          wide
+        >
+          <div className="space-y-4">
+            <div className="h-56 w-full overflow-hidden rounded-xl bg-slate-100">
+              <img
+                src={selectedArticle.imageUrl}
+                alt={selectedArticle.title}
+                className="size-full object-cover"
+              />
+            </div>
+            <p className="text-sm leading-relaxed text-slate-700">
+              {selectedArticle.excerpt}
+            </p>
+            <p className="text-sm leading-relaxed text-slate-600">
+              Building a high-growth venture while in college offers unprecedented advantages: direct access to
+              talented peers, professor mentorship, and institutional laboratories. By focusing on customer
+              discovery and proving unit economics early, founders can leverage IdeaBridge to connect with angel
+              networks seeking authentic collegiate innovation.
+            </p>
+          </div>
+        </Modal>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          role="status"
+          className="fixed bottom-5 right-5 z-[60] flex max-w-sm items-center gap-2 rounded-xl border border-[#dce6ee] bg-white px-4 py-3 text-xs font-semibold text-[#29435d] shadow-lg animate-rise"
+        >
+          <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 1. Featured Highlight Card (Top 3 Cards in Screenshot)
+function FeaturedHighlightCard({
+  venture,
+  onSelect,
+  onInterest,
+  isInterested,
+}: {
+  venture: Venture;
+  onSelect: () => void;
+  onInterest: () => void;
+  isInterested: boolean;
+}) {
+  return (
+    <article className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-md">
+      <div className="flex gap-3.5 items-start">
+        {/* Left Thumbnail Image */}
+        <div
+          onClick={onSelect}
+          className="relative size-24 shrink-0 cursor-pointer overflow-hidden rounded-xl bg-slate-100"
+        >
+          <img
+            src={venture.imageUrl || 'https://images.unsplash.com/photo-1527842891421-42eec6e703ea?w=300&auto=format&fit=crop&q=80'}
+            alt={venture.name}
+            className="size-full object-cover transition duration-300 group-hover:scale-105"
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&auto=format&fit=crop&q=80';
+            }}
+          />
         </div>
 
-        {page === 'overview' && role === 'student' && <div className="animate-rise">
-          <section className="relative mb-6 overflow-hidden rounded-2xl bg-[#1c476f] px-6 py-6 text-white shadow-[0_8px_24px_rgba(25,64,101,.13)] sm:px-8 sm:py-7"><div className="absolute -right-14 -top-24 size-64 rounded-full border border-white/10" /><div className="absolute right-16 -top-20 size-44 rounded-full border border-white/10" /><div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-center"><div className="max-w-xl"><div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-blue-100/70"><Sparkles className="size-3.5" /> Your founder journey</div><h3 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-[-.04em]">Ideas move forward, one step at a time.</h3><p className="mt-2 max-w-lg text-sm leading-6 text-blue-50/75">Your application status and reviewer guidance live here. Every decision comes with a clear next step.</p></div><button onClick={openSubmit} className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-4 text-xs font-bold text-[#1e527f] transition hover:bg-blue-50">Submit an idea<ArrowRight className="size-4" /></button></div></section>
-          <div className="grid gap-4 sm:grid-cols-3"><Metric label="My applications" value={mine.length} note="Ideas in your workspace" icon={FileText} /><Metric label="In review" value={mine.filter(v => v.status === 'Under review').length} note="Typically reviewed in 2–3 weeks" icon={Clock3} tone="amber" /><Metric label="Funding approved" value={money(mine.filter(v => v.status === 'Approved').reduce((sum, v) => sum + (v.approvedBudget || 0), 0))} note="Across your approved ventures" icon={Wallet} tone="green" /></div>
-          <div className="mt-7 grid gap-5 lg:grid-cols-[1.35fr_.65fr]"><section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="mb-4 flex items-center justify-between"><div><h3 className="text-sm font-bold text-[#29405a]">Recent applications</h3><p className="mt-1 text-xs text-slate-500">A little progress is still progress.</p></div><button onClick={() => setPage('applications')} className="text-xs font-bold text-[#2b6699] hover:underline">View all</button></div>{mine.length ? <div className="space-y-2">{mine.slice(0, 3).map(v => <button key={v.id} onClick={() => setSelected(v)} className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-100 p-3.5 text-left transition hover:border-slate-200 hover:bg-slate-50/70"><span className="min-w-0"><span className="block truncate text-sm font-bold text-[#30455e]">{v.name}</span><span className="mt-1 block text-xs text-slate-500">{dateLabel(v.createdAt)} · {money(v.requestedAmount)} requested</span></span><StatusBadge status={v.status} /></button>)}</div> : <EmptyState icon={FileText} title="Your first idea starts here" body="Submit a venture to begin your funding journey." action={<button onClick={openSubmit} className="mt-3 text-xs font-bold text-[#28618f]">Create an application <ArrowRight className="inline size-3.5" /></button>} />}</section>
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-center gap-2"><div className="flex size-8 items-center justify-center rounded-lg bg-[#eaf3fb] text-[#28618f]"><MessageSquareText className="size-4" /></div><h3 className="text-sm font-bold text-[#29405a]">A transparent process</h3></div><div className="mt-5 space-y-4">{[['01', 'Submitted', 'Your idea is shared with the review team.'], ['02', 'In review', 'The team reads your plan and funding request.'], ['03', 'A clear decision', 'Get a decision, budget, and useful feedback.']].map(([n, title, body], i) => <div className="flex gap-3" key={n}><div className={`flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${i === 2 ? 'bg-emerald-50 text-emerald-700' : 'bg-[#edf3f8] text-[#426989]'}`}>{i === 2 ? <Check className="size-3.5" /> : n}</div><div><p className="text-xs font-bold text-[#31475f]">{title}</p><p className="mt-1 text-[11px] leading-5 text-slate-500">{body}</p></div></div>)}</div></section></div>
-        </div>}
+        {/* Right Content */}
+        <div className="min-w-0 flex-1">
+          <button type="button" onClick={onSelect} className="block text-left w-full">
+            <h3 className="font-[var(--app-font-serif)] text-sm font-bold tracking-tight text-[#112d4e] group-hover:text-blue-600 transition truncate">
+              {venture.name}
+            </h3>
+            <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-500">
+              {venture.tagline}
+            </p>
+          </button>
+        </div>
+      </div>
 
-        {page === 'overview' && role === 'admin' && <div className="animate-rise"><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Total submissions" value={data.ventures.length} note="Across all application rounds" icon={BriefcaseBusiness} /><Metric label="Awaiting review" value={data.ventures.filter(v => v.status === 'Under review').length} note="Ready for a decision" icon={Clock3} tone="amber" /><Metric label="Approved ventures" value={approved.length} note="Visible to the investor network" icon={BadgeCheck} tone="green" /><Metric label="Capital allocated" value={money(data.ventures.reduce((sum, v) => sum + (v.approvedBudget || 0), 0))} note="Approved budget to date" icon={Wallet} tone="violet" /></div>
-          <div className="mt-7 grid gap-5 lg:grid-cols-[1.5fr_.7fr]"><section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="mb-5 flex items-center justify-between"><div><h3 className="text-sm font-bold text-[#29405a]">Latest submissions</h3><p className="mt-1 text-xs text-slate-500">Recently added to the program.</p></div><button onClick={() => setPage('review')} className="text-xs font-bold text-[#2b6699] hover:underline">Open review queue</button></div><div className="space-y-1">{[...data.ventures].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4).map(v => <button onClick={() => setSelected(v)} key={v.id} className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-slate-50"><span className="min-w-0"><span className="block truncate text-sm font-bold text-[#30455e]">{v.name}</span><span className="mt-1 block text-xs text-slate-500">{v.founder} · {v.university}</span></span><StatusBadge status={v.status} /></button>)}</div></section><section className="relative overflow-hidden rounded-2xl bg-[#eaf2f8] p-6"><div className="absolute -right-9 -top-8 size-32 rounded-full border border-[#cbdce9]" /><div className="relative"><p className="text-[10px] font-bold uppercase tracking-[.15em] text-[#6686a5]">Program health</p><h3 className="mt-2 font-[var(--app-font-serif)] text-xl font-bold tracking-[-.035em] text-[#25425e]">Every review builds trust.</h3><p className="mt-2 text-xs leading-5 text-slate-600">A timely decision and specific feedback help founders make their next move with confidence.</p><div className="mt-5 flex items-center gap-3 border-t border-[#d5e2ed] pt-4"><div className="flex size-9 items-center justify-center rounded-xl bg-white text-[#3d719c]"><CheckCircle2 className="size-[18px]" /></div><div><div className="text-sm font-bold text-[#294560]">{data.ventures.filter(v => v.feedback).length} feedback notes sent</div><div className="text-[10px] text-slate-500">Across the current portfolio</div></div></div></div></section></div></div>}
+      {/* Bottom Metadata row */}
+      <div className="mt-3.5 flex items-center justify-between border-t border-slate-100 pt-2.5">
+        <div className="flex items-center gap-2">
+          {/* Category Pill with small blue dot */}
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+            <span className="size-1.5 rounded-full bg-blue-600" />
+            <span>{venture.category}</span>
+          </span>
 
-        {page === 'overview' && role === 'investor' && <div className="animate-rise"><section className="relative mb-6 overflow-hidden rounded-2xl bg-[#1c476f] p-6 text-white sm:p-8"><div className="absolute -right-14 -top-24 size-64 rounded-full border border-white/10" /><div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-center"><div><div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-blue-100/70"><Compass className="size-3.5" /> Curated for early conviction</div><h3 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-[-.04em]">Meet the next generation of builders.</h3><p className="mt-2 max-w-xl text-sm leading-6 text-blue-50/75">Every venture below has been reviewed and approved by its campus program. Explore their plans and let founders know where you see promise.</p></div><button onClick={() => setPage('discover')} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-white px-4 text-xs font-bold text-[#1e527f] hover:bg-blue-50">Explore ventures<ArrowRight className="size-4" /></button></div></section><div className="grid gap-4 sm:grid-cols-3"><Metric label="Approved ventures" value={approved.length} note="Reviewed and ready to explore" icon={BadgeCheck} tone="green" /><Metric label="Approved capital" value={money(approved.reduce((sum, v) => sum + (v.approvedBudget || 0), 0))} note="Budget allocations by program" icon={Wallet} tone="blue" /><Metric label="Your interests" value={data.ventures.filter(v => v.interests.includes(displayName)).length} note="Ventures on your radar" icon={Bookmark} tone="violet" /></div><section className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="mb-4 flex items-center justify-between"><div><h3 className="text-sm font-bold text-[#29405a]">Recently approved</h3><p className="mt-1 text-xs text-slate-500">A few ventures worth a first look.</p></div><button onClick={() => setPage('discover')} className="text-xs font-bold text-[#2b6699] hover:underline">See all</button></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{approved.slice(0, 3).map(v => <VentureCard key={v.id} venture={v} interested={v.interests.includes(displayName)} onOpen={() => setSelected(v)} onInterest={() => toggleInterest(v)} />)}</div></section></div>}
+          {/* Price Range Pill */}
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+            <span>{formatPriceBadge(venture.priceRange || '15-30')}</span>
+          </span>
+        </div>
 
-        {page === 'applications' && role === 'student' && <div className="animate-rise"><div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="text-xs text-slate-500">{mine.length} application{mine.length === 1 ? '' : 's'} · Updates appear here as the team reviews your work.</div><SearchBox value={query} onChange={setQuery} placeholder="Search applications" /></div>{filteredMine.length ? <div className="space-y-3">{filteredMine.map(v => <article key={v.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_2px_7px_rgba(32,59,88,.025)] sm:p-6"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2.5"><h3 className="font-[var(--app-font-serif)] text-lg font-bold tracking-[-.03em] text-[#263d58]">{v.name}</h3><StatusBadge status={v.status} /></div><p className="mt-1 text-sm text-slate-500">{v.tagline}</p><div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500"><span>{v.category}</span><span>Submitted {dateLabel(v.createdAt)}</span><span>{money(v.requestedAmount)} requested</span></div></div><button onClick={() => setSelected(v)} className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">View application<ArrowRight className="size-3.5" /></button></div>{v.status === 'Approved' && <div className="mt-5 flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3"><div className="flex items-center gap-2 text-xs font-semibold text-emerald-800"><CheckCircle2 className="size-4" />Approved budget</div><span className="font-[var(--app-font-serif)] text-lg font-bold text-emerald-800">{money(v.approvedBudget || 0)}</span></div>}{v.feedback && <div className="mt-4 rounded-xl border-l-2 border-[#83a9ca] bg-[#f6f9fc] px-4 py-3"><p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.1em] text-[#537697]"><MessageSquareText className="size-3" />Program team feedback</p><p className="text-xs leading-5 text-slate-600">{v.feedback}</p></div>}</article>)}</div> : <EmptyState icon={FileText} title="No applications found" body="Try another search, or begin a new application." action={<button onClick={openSubmit} className="mt-3 rounded-lg bg-[#1e5689] px-4 py-2 text-xs font-bold text-white">Start an application</button>} />}</div>}
+        {/* Bookmark Icon */}
+        <button
+          type="button"
+          onClick={onInterest}
+          className={`p-1 transition ${
+            isInterested ? 'text-blue-600' : 'text-slate-400 hover:text-blue-600'
+          }`}
+          title={isInterested ? 'Bookmarked' : 'Bookmark project'}
+        >
+          <Bookmark className={`size-3.5 ${isInterested ? 'fill-current' : ''}`} />
+        </button>
+      </div>
+    </article>
+  );
+}
 
-        {page === 'review' && role === 'admin' && <div className="animate-rise"><div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-slate-500">{data.ventures.length} total submissions · Select a venture to review details and record a decision.</p><div className="flex flex-col gap-2 sm:flex-row"><SearchBox value={query} onChange={setQuery} placeholder="Search ventures or founders" /><label className="relative"><Filter className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" /><select value={filter} onChange={e => setFilter(e.target.value)} aria-label="Filter by status" className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-xs font-medium text-slate-600 outline-none focus:border-[#7ca4c8] sm:w-[176px]"><option>All statuses</option><option>Under review</option><option>Revision requested</option><option>Approved</option><option>Not selected</option></select><ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" /></label></div></div>{renderTable(filteredAdmin, setSelected, true)}</div>}
+// 2. Compact Horizontal Project Card (Inside Range Rows)
+function CompactProjectCard({
+  venture,
+  onSelect,
+  onInterest,
+  isInterested,
+}: {
+  venture: Venture;
+  onSelect: () => void;
+  onInterest: () => void;
+  isInterested: boolean;
+}) {
+  return (
+    <article
+      onClick={onSelect}
+      className="group flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 bg-[#fbfcfd] p-2 transition hover:border-blue-200 hover:bg-white hover:shadow-xs"
+    >
+      {/* Square Thumbnail Image */}
+      <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+        <img
+          src={venture.imageUrl || 'https://images.unsplash.com/photo-1558441719-aa34bbe5f347?w=150&auto=format&fit=crop&q=80'}
+          alt={venture.name}
+          className="size-full object-cover transition duration-200 group-hover:scale-105"
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&auto=format&fit=crop&q=80';
+          }}
+        />
+      </div>
 
-        {page === 'discover' && role === 'investor' && <div className="animate-rise"><div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-slate-500">{approved.length} approved ventures · Applications are reviewed by their campus program before appearing here.</p><SearchBox value={query} onChange={setQuery} placeholder="Search approved ventures" /></div>{filteredApproved.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredApproved.map(v => <VentureCard key={v.id} venture={v} interested={v.interests.includes(displayName)} onOpen={() => setSelected(v)} onInterest={() => toggleInterest(v)} />)}</div> : <EmptyState icon={Compass} title="No ventures match that search" body="Clear your search to see all currently approved projects." action={<button onClick={() => setQuery('')} className="mt-3 text-xs font-bold text-[#28618f]">Clear search</button>} />}</div>}
+      {/* Details */}
+      <div className="min-w-0 flex-1">
+        <h4 className="truncate text-xs font-bold text-[#112d4e] group-hover:text-blue-600 transition">
+          {venture.name}
+        </h4>
+        <div className="mt-1 flex items-center gap-2">
+          {/* Category */}
+          <span className="inline-flex items-center gap-1 text-[10px] text-slate-500">
+            <span className="size-1 rounded-full bg-blue-500" />
+            <span className="truncate max-w-[80px]">{venture.category}</span>
+          </span>
+          {/* Price */}
+          <span className="text-[10px] font-bold text-[#1877f2]">
+            {formatPriceBadge(venture.priceRange || '15-30')}
+          </span>
+        </div>
+      </div>
 
-        {page === 'submit' && role === 'student' && <div className="mx-auto max-w-3xl animate-rise"><div className="mb-5 flex items-center gap-3 rounded-xl border border-[#dce8f2] bg-[#f0f6fb] p-4"><div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#39729f]"><Sparkles className="size-4" /></div><p className="text-xs leading-5 text-[#526c83]">Tell us what you're building and what support would unlock. Your application is only visible to the campus review team until it is approved.</p></div><ApplicationForm name={displayName} onSubmit={addApplication} onCancel={() => setPage('overview')} /></div>}
-      </main>
+      {/* Bookmark button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onInterest();
+        }}
+        className={`p-1 transition opacity-70 group-hover:opacity-100 ${
+          isInterested ? 'text-blue-600' : 'text-slate-300 hover:text-blue-600'
+        }`}
+      >
+        <Bookmark className={`size-3.5 ${isInterested ? 'fill-current' : ''}`} />
+      </button>
+    </article>
+  );
+}
+
+// Existing Workspace Views (Retained for complete operational functionality)
+function renderWorkspaceView({
+  role,
+  displayName,
+  page,
+  setPage,
+  data,
+  mine,
+  approved,
+  mobileNav,
+  setMobileNav,
+  signOut,
+  reset,
+  selectedVenture,
+  setSelectedVenture,
+  changeVenture,
+  toggleInterest,
+  addApplication,
+  inform,
+  toast,
+}: {
+  role: Role;
+  displayName: string;
+  page: Page;
+  setPage: (p: Page) => void;
+  data: DemoData;
+  mine: Venture[];
+  approved: Venture[];
+  mobileNav: boolean;
+  setMobileNav: (v: boolean) => void;
+  signOut: () => void;
+  reset: () => void;
+  selectedVenture: Venture | null;
+  setSelectedVenture: (v: Venture | null) => void;
+  changeVenture: (id: string, patch: Partial<Venture>) => void;
+  toggleInterest: (v: Venture) => void;
+  addApplication: (form: HTMLFormElement) => void;
+  inform: (msg: string) => void;
+  toast: string;
+}) {
+  const greeting =
+    role === 'student' ? displayName.split(' ')[0] : role === 'admin' ? 'Morgan' : displayName;
+
+  const nav: { key: Page; label: string; icon: typeof LayoutDashboard }[] =
+    role === 'student'
+      ? [
+          { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+          { key: 'applications', label: 'My applications', icon: FileText },
+          { key: 'submit', label: 'New application', icon: FilePlus2 },
+        ]
+      : role === 'admin'
+      ? [
+          { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+          { key: 'review', label: 'Review queue', icon: ShieldCheck },
+        ]
+      : [
+          { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+          { key: 'discover', label: 'Discover ventures', icon: Compass },
+        ];
+
+  return (
+    <div className="min-h-screen bg-[#f6f8fb]">
+      {mobileNav && (
+        <button
+          className="fixed inset-0 z-30 bg-[#142b45]/35 md:hidden"
+          onClick={() => setMobileNav(false)}
+          aria-label="Close navigation"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-[256px] flex-col border-r border-[#e7ebf1] bg-white px-4 transition-transform duration-200 md:translate-x-0 ${
+          mobileNav ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex h-[76px] items-center justify-between px-2">
+          <IdeaBridgeLogo onClick={() => setPage('front')} />
+          <button
+            className="rounded-lg p-2 text-slate-400 md:hidden"
+            onClick={() => setMobileNav(false)}
+            aria-label="Close menu"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+
+        {/* Back to Home Button */}
+        <button
+          type="button"
+          onClick={() => setPage('front')}
+          className="mb-4 flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
+        >
+          <ArrowRight className="size-3.5 rotate-180" />
+          <span>Back to IdeaBridge Home</span>
+        </button>
+
+        <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">
+          Workspace
+        </div>
+        <nav className="space-y-1">
+          {nav.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => {
+                setPage(item.key);
+                setMobileNav(false);
+              }}
+              className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition ${
+                page === item.key
+                  ? 'bg-[#eaf2fa] text-[#1c578a]'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-[#243c57]'
+              }`}
+            >
+              <item.icon
+                className={`size-[17px] ${
+                  page === item.key ? 'text-[#286697]' : 'text-slate-400 group-hover:text-slate-600'
+                }`}
+              />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="mt-auto border-t border-slate-100 py-4">
+          <button
+            onClick={reset}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-[#243c57]"
+          >
+            <SlidersHorizontal className="size-4 text-slate-400" />
+            Reset demo data
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="md:pl-[256px]">
+        <header className="sticky top-0 z-20 flex h-[68px] items-center justify-between border-b border-[#e7ebf1] bg-white/95 px-4 backdrop-blur-md sm:px-7 lg:px-10">
+          <div className="flex items-center gap-3">
+            <button
+              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 md:hidden"
+              onClick={() => setMobileNav(true)}
+              aria-label="Open navigation"
+            >
+              <Menu className="size-5" />
+            </button>
+            <h1 className="font-[var(--app-font-serif)] text-[18px] font-bold text-[#203752]">
+              {roleTitles[role]}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setPage('front')}
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Exit to Front Page
+            </button>
+            <button
+              onClick={signOut}
+              className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200"
+            >
+              Switch Role
+            </button>
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-[1440px] px-4 pb-12 pt-7 sm:px-7 lg:px-10">
+          {page === 'overview' && (
+            <div className="space-y-6">
+              <div className="rounded-2xl bg-gradient-to-r from-[#173f67] to-[#1e588f] p-6 text-white sm:p-8">
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-200">
+                  {roleTitles[role]}
+                </p>
+                <h2 className="mt-1 font-[var(--app-font-serif)] text-2xl font-bold sm:text-3xl">
+                  Welcome back, {greeting}
+                </h2>
+                <p className="mt-2 max-w-xl text-sm text-blue-100/80">
+                  Manage applications, review status, and track allocations in real-time.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Metric
+                  label="Total Ventures"
+                  value={data.ventures.length}
+                  note="In platform pipeline"
+                  icon={BriefcaseBusiness}
+                />
+                <Metric
+                  label="Approved Ventures"
+                  value={approved.length}
+                  note="Ready for investment"
+                  icon={BadgeCheck}
+                  tone="green"
+                />
+                <Metric
+                  label="Your Applications"
+                  value={mine.length}
+                  note="Submitted from workspace"
+                  icon={FileText}
+                  tone="amber"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                <h3 className="font-bold text-slate-800">Recent Applications</h3>
+                <div className="mt-4 space-y-2">
+                  {data.ventures.slice(0, 5).map((v) => (
+                    <div
+                      key={v.id}
+                      onClick={() => setSelectedVenture(v)}
+                      className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-100 p-3 hover:bg-slate-50"
+                    >
+                      <div>
+                        <p className="font-bold text-slate-800 text-sm">{v.name}</p>
+                        <p className="text-xs text-slate-500">
+                          {v.founder} · {v.university} · {v.category}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-blue-700">
+                          ₹ {v.requestedAmount} Lakhs
+                        </span>
+                        <StatusBadge status={v.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {page === 'applications' && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-slate-800">My Applications</h2>
+              <div className="space-y-3">
+                {mine.map((v) => (
+                  <div
+                    key={v.id}
+                    onClick={() => setSelectedVenture(v)}
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-300"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-slate-800">{v.name}</h3>
+                      <StatusBadge status={v.status} />
+                    </div>
+                    <p className="mt-1 text-sm text-slate-600">{v.tagline}</p>
+                    <p className="mt-2 text-xs font-semibold text-blue-700">
+                      Funding Requested: ₹ {v.requestedAmount} Lakhs
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {page === 'review' && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-slate-800">Review Queue</h2>
+              <div className="space-y-3">
+                {data.ventures.map((v) => (
+                  <div
+                    key={v.id}
+                    onClick={() => setSelectedVenture(v)}
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-300 flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-slate-800">{v.name}</h3>
+                        <StatusBadge status={v.status} />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {v.founder} · {v.university} · ₹ {v.requestedAmount} Lakhs
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100"
+                    >
+                      Review
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {page === 'discover' && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-slate-800">Discover Approved Ventures</h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {approved.map((v) => (
+                  <FeaturedHighlightCard
+                    key={v.id}
+                    venture={v}
+                    onSelect={() => setSelectedVenture(v)}
+                    onInterest={() => toggleInterest(v)}
+                    isInterested={v.interests.includes(displayName)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {page === 'submit' && (
+            <div className="max-w-2xl mx-auto rounded-2xl border border-slate-200 bg-white p-6">
+              <h2 className="text-xl font-bold text-slate-800 mb-4">Submit New Project</h2>
+              <ApplicationForm
+                name={displayName}
+                onSubmit={addApplication}
+                onCancel={() => setPage('overview')}
+              />
+            </div>
+          )}
+        </main>
+      </div>
+
+      {selectedVenture && (
+        <Modal
+          title={selectedVenture.name}
+          subtitle={selectedVenture.tagline}
+          onClose={() => setSelectedVenture(null)}
+          wide
+        >
+          <VentureDetails
+            venture={selectedVenture}
+            role={role}
+            displayName={displayName}
+            onDecision={(status, feedback, budget) => {
+              changeVenture(selectedVenture.id, {
+                status,
+                feedback,
+                ...(status === 'Approved' ? { approvedBudget: budget } : {}),
+              });
+              inform(`Decision updated for ${selectedVenture.name}.`);
+            }}
+            onInterest={() => toggleInterest(selectedVenture)}
+          />
+        </Modal>
+      )}
+
+      {toast && (
+        <div
+          role="status"
+          className="fixed bottom-5 right-5 z-[60] flex max-w-sm items-center gap-2 rounded-xl border border-[#dce6ee] bg-white px-4 py-3 text-xs font-semibold text-[#29435d] shadow-lg animate-rise"
+        >
+          <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+          {toast}
+        </div>
+      )}
     </div>
-
-    {selected && <Modal title={selected.name} subtitle={selected.tagline} onClose={() => setSelected(null)} wide>
-      <VentureDetails venture={selected} role={role} displayName={displayName} onDecision={(status, feedback, budget) => { changeVenture(selected.id, { status, feedback, ...(status === 'Approved' ? { approvedBudget: budget } : {}) }); inform(status === 'Approved' ? 'Venture approved and shared with investors.' : status === 'Revision requested' ? 'Revision request sent to the founder.' : 'Decision saved and shared with the founder.'); }} onInterest={() => toggleInterest(selected)} />
-    </Modal>}
-    {toast && <div role="status" className="fixed bottom-5 right-5 z-[60] flex max-w-sm items-center gap-2 rounded-xl border border-[#dce6ee] bg-white px-4 py-3 text-xs font-semibold text-[#29435d] shadow-lg animate-rise"><CheckCircle2 className="size-4 shrink-0 text-emerald-600" />{toast}</div>}
-  </div>;
+  );
 }
 
-function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
-  return <label className="relative block"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder} className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ca4c8] focus:ring-3 focus:ring-[#eaf2fa] sm:w-[240px]" /></label>;
+function Field({
+  label,
+  name,
+  placeholder,
+  required = true,
+  type = 'text',
+  defaultValue,
+  hint,
+}: {
+  label: string;
+  name: string;
+  placeholder?: string;
+  required?: boolean;
+  type?: string;
+  defaultValue?: string;
+  hint?: string;
+}) {
+  return (
+    <label className="block text-xs font-semibold text-slate-600">
+      {label}
+      {required && <span className="ml-1 text-[#b75f59]">*</span>}
+      <input
+        name={name}
+        type={type}
+        required={required}
+        min={type === 'number' ? 1 : undefined}
+        step={type === 'number' ? 0.5 : undefined}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]"
+      />
+      {hint && <span className="mt-1 block text-[10px] font-normal text-slate-400">{hint}</span>}
+    </label>
+  );
 }
 
-function EmptyState({ icon: Icon, title, body, action }: { icon: typeof FileText; title: string; body: string; action?: ReactNode }) {
-  return <div className="flex min-h-48 flex-col items-center justify-center px-5 py-8 text-center"><div className="flex size-11 items-center justify-center rounded-2xl bg-[#eef4f9] text-[#50789a]"><Icon className="size-5" /></div><h3 className="mt-3 text-sm font-bold text-[#2c425b]">{title}</h3><p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">{body}</p>{action}</div>;
+function ApplicationForm({
+  name,
+  onSubmit,
+  onCancel,
+}: {
+  name: string;
+  onSubmit: (form: HTMLFormElement) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(e.currentTarget);
+      }}
+      className="space-y-5"
+    >
+      <div>
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
+          Founder & Venture Info
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Founder name" name="founder" defaultValue={name} />
+          <Field label="University / College" name="university" placeholder="IIT / BITS / DU etc." />
+          <Field
+            label="Contact email"
+            name="email"
+            type="email"
+            placeholder="founder@college.edu"
+          />
+          <Field label="Venture / Project name" name="name" placeholder="Idea / Startup name" />
+          <Field
+            label="One-line tagline"
+            name="tagline"
+            placeholder="A clear, memorable sentence"
+          />
+          <label className="block text-xs font-semibold text-slate-600">
+            Sector Category<span className="ml-1 text-[#b75f59]">*</span>
+            <select
+              required
+              name="category"
+              defaultValue="Retail"
+              className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-[#76a0c6]"
+            >
+              <option value="Retail">Retail</option>
+              <option value="Agritech">Agritech</option>
+              <option value="Clean Energy">Clean Energy</option>
+              <option value="EdTech">EdTech</option>
+              <option value="Environment">Environment</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="IoT">IoT</option>
+              <option value="Logistics">Logistics</option>
+              <option value="Service">Service</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div className="border-t border-slate-100 pt-4">
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
+          The Opportunity & Solution
+        </p>
+        <div className="space-y-3">
+          <label className="block text-xs font-semibold text-slate-600">
+            What are you building?<span className="ml-1 text-[#b75f59]">*</span>
+            <textarea
+              required
+              name="description"
+              rows={3}
+              minLength={20}
+              placeholder="Describe the problem, who experiences it, and how your project solves it."
+              className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]"
+            />
+          </label>
+          <label className="block text-xs font-semibold text-slate-600">
+            Business model<span className="ml-1 text-[#b75f59]">*</span>
+            <textarea
+              required
+              name="businessModel"
+              rows={2}
+              placeholder="How will the project generate revenue or sustain operations?"
+              className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]"
+            />
+          </label>
+          <label className="block text-xs font-semibold text-slate-600">
+            Planned use of funds<span className="ml-1 text-[#b75f59]">*</span>
+            <textarea
+              required
+              name="useOfFunds"
+              rows={2}
+              placeholder="What key milestone will this funding help reach?"
+              className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]"
+            />
+          </label>
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field
+          label="Funding requested (in Lakhs)"
+          name="requestedAmount"
+          type="number"
+          placeholder="18"
+          hint="e.g. 18 for ₹ 18 Lakhs."
+        />
+      </div>
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="h-10 rounded-lg border border-slate-200 px-4 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1877f2] px-5 text-xs font-bold text-white transition hover:bg-[#1264ce]"
+        >
+          <span>List Project</span>
+          <ArrowRight className="size-3.5" />
+        </button>
+      </div>
+    </form>
+  );
 }
 
-function Field({ label, name, placeholder, required = true, type = 'text', defaultValue, hint }: { label: string; name: string; placeholder?: string; required?: boolean; type?: string; defaultValue?: string; hint?: string }) {
-  return <label className="block text-xs font-semibold text-slate-600">{label}{required && <span className="ml-1 text-[#b75f59]">*</span>}<input name={name} type={type} required={required} min={type === 'number' ? 500 : undefined} step={type === 'number' ? 500 : undefined} defaultValue={defaultValue} placeholder={placeholder} className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]" />{hint && <span className="mt-1 block text-[10px] font-normal text-slate-400">{hint}</span>}</label>;
-}
-
-function ApplicationForm({ name, onSubmit, onCancel }: { name: string; onSubmit: (form: HTMLFormElement) => void; onCancel: () => void }) {
-  return <form onSubmit={e => { e.preventDefault(); onSubmit(e.currentTarget); }} className="space-y-5">
-    <div><p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">Founder & venture</p><div className="grid gap-3 sm:grid-cols-2"><Field label="Founder name" name="founder" defaultValue={name} /><Field label="University" name="university" placeholder="Your university" /><Field label="Contact email" name="email" type="email" placeholder="you@university.edu" /><Field label="Venture name" name="name" placeholder="What do you call it?" /><Field label="One-line tagline" name="tagline" placeholder="A clear, memorable sentence" /><label className="block text-xs font-semibold text-slate-600">Category<span className="ml-1 text-[#b75f59]">*</span><select required name="category" defaultValue="" className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-[#76a0c6]"><option value="" disabled>Choose a category</option>{['Education technology', 'Climate & sustainability', 'Health & wellness', 'Food & agriculture', 'Marketplace', 'Financial technology', 'Consumer products', 'Other'].map(c => <option key={c}>{c}</option>)}</select></label></div></div>
-    <div className="border-t border-slate-100 pt-4"><p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">The opportunity</p><div className="space-y-3"><label className="block text-xs font-semibold text-slate-600">What are you building?<span className="ml-1 text-[#b75f59]">*</span><textarea required name="description" rows={3} minLength={30} placeholder="Describe the problem, who experiences it, and how your venture helps." className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]" /></label><label className="block text-xs font-semibold text-slate-600">Business model<span className="ml-1 text-[#b75f59]">*</span><textarea required name="businessModel" rows={2} placeholder="How will the venture sustain itself?" className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]" /></label><label className="block text-xs font-semibold text-slate-600">Planned use of funds<span className="ml-1 text-[#b75f59]">*</span><textarea required name="useOfFunds" rows={2} placeholder="What specific milestone would funding help you reach?" className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]" /></label></div></div>
-    <div className="grid gap-3 sm:grid-cols-2"><Field label="Funding requested" name="requestedAmount" type="number" placeholder="12000" hint="Enter an amount in USD." /></div>
-    <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><button type="button" onClick={onCancel} className="h-10 rounded-lg border border-slate-200 px-4 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button><button type="submit" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#1e5689] px-4 text-xs font-bold text-white transition hover:bg-[#164775]" data-testid="button-submit-application">Submit for review<ArrowRight className="size-3.5" /></button></div>
-  </form>;
-}
-
-function VentureCard({ venture, interested, onOpen, onInterest }: { venture: Venture; interested: boolean; onOpen: () => void; onInterest: () => void }) {
-  return <article className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition duration-200 hover:-translate-y-0.5 hover:border-[#cddbe8] hover:shadow-md"><div className="flex items-start justify-between gap-3"><div className="flex size-10 items-center justify-center rounded-xl bg-[#edf4fa] text-[#3c719b]"><Building2 className="size-[18px]" /></div><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">Approved</span></div><button onClick={onOpen} className="mt-4 text-left"><h3 className="font-[var(--app-font-serif)] text-lg font-bold tracking-[-.03em] text-[#263e58] group-hover:text-[#205b8e]">{venture.name}</h3><p className="mt-1 text-xs leading-5 text-slate-500">{venture.tagline}</p></button><div className="mt-3 flex flex-wrap gap-1.5"><span className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600">{venture.category}</span><span className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-500">{venture.university}</span></div><div className="mt-4 border-t border-slate-100 pt-3"><div className="flex items-center justify-between"><span className="text-[11px] text-slate-500">Approved budget</span><span className="font-[var(--app-font-serif)] text-base font-bold text-[#285b83]">{money(venture.approvedBudget || 0)}</span></div></div><div className="mt-auto flex gap-2 pt-4"><button onClick={onOpen} className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">View details<ArrowRight className="size-3.5" /></button><button onClick={onInterest} aria-pressed={interested} className={`flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-bold transition ${interested ? 'bg-[#eaf3fb] text-[#245c91]' : 'bg-[#1e5689] text-white hover:bg-[#164775]'}`}><Bookmark className={`size-3.5 ${interested ? 'fill-current' : ''}`} />{interested ? 'Interested' : 'Signal interest'}</button></div></article>;
-}
-
-function VentureDetails({ venture, role, displayName, onDecision, onInterest }: { venture: Venture; role: Role; displayName: string; onDecision: (status: VentureStatus, feedback: string, budget: number) => void; onInterest: () => void }) {
+function VentureDetails({
+  venture,
+  role,
+  displayName,
+  onDecision,
+  onInterest,
+}: {
+  venture: Venture;
+  role: Role;
+  displayName: string;
+  onDecision: (status: VentureStatus, feedback: string, budget: number) => void;
+  onInterest: () => void;
+}) {
   const [feedback, setFeedback] = useState(venture.feedback || '');
   const [budget, setBudget] = useState(String(venture.approvedBudget ?? venture.requestedAmount));
   const interested = venture.interests.includes(displayName);
   const isAdmin = role === 'admin';
-  return <div>
-    <div className="mb-5 flex flex-wrap items-center gap-2"><StatusBadge status={venture.status} /><span className="rounded-full bg-[#f0f4f8] px-2.5 py-1 text-[10px] font-semibold text-slate-600">{venture.category}</span></div>
-    <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2"><Detail label="Founder" value={venture.founder} /><Detail label="University" value={venture.university} /><Detail label="Contact" value={venture.email} /><Detail label="Submitted" value={dateLabel(venture.createdAt)} /><Detail label="Requested funding" value={money(venture.requestedAmount)} />{venture.approvedBudget !== undefined && <Detail label="Approved budget" value={money(venture.approvedBudget)} />}</div>
-    <div className="mt-5 space-y-4 border-t border-slate-100 pt-5"><DetailBlock label="The idea" text={venture.description} /><DetailBlock label="Business model" text={venture.businessModel} /><DetailBlock label="Planned use of funds" text={venture.useOfFunds} /></div>
-    {!isAdmin && venture.feedback && <div className="mt-5 rounded-xl border-l-2 border-[#83a9ca] bg-[#f6f9fc] px-4 py-3"><p className="mb-1 text-[10px] font-bold uppercase tracking-[.1em] text-[#537697]">Program team feedback</p><p className="text-xs leading-5 text-slate-600">{venture.feedback}</p></div>}
-     {role === 'investor' && <div className="mt-5 flex items-center justify-between rounded-xl border border-[#dce8f2] bg-[#f5f9fc] px-4 py-3"><div><p className="text-xs font-bold text-[#2b425a]">Investor interest</p><p className="mt-1 text-[11px] text-slate-500">{venture.interests.length ? `${venture.interests.length} interested ${venture.interests.length === 1 ? 'party' : 'parties'}` : 'Be the first to signal interest.'}</p></div><button onClick={onInterest} className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold ${interested ? 'border border-[#b8cede] bg-white text-[#245c91]' : 'bg-[#1e5689] text-white hover:bg-[#164775]'}`}><Bookmark className={`size-3.5 ${interested ? 'fill-current' : ''}`} />{interested ? 'Withdraw interest' : 'Signal interest'}</button></div>}
-    {isAdmin && <div className="mt-6 border-t border-slate-100 pt-5"><p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">Record a decision</p><div className="grid gap-3 sm:grid-cols-[.7fr_1.3fr]"><label className="block text-xs font-semibold text-slate-600">Approved budget<input type="number" min="0" step="500" value={budget} onChange={e => setBudget(e.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-normal text-slate-800 outline-none focus:border-[#76a0c6]" /><span className="mt-1 block text-[10px] font-normal text-slate-400">Set the amount to publish with approval.</span></label><label className="block text-xs font-semibold text-slate-600">Feedback for founder<textarea value={feedback} onChange={e => setFeedback(e.target.value)} rows={3} placeholder="Share a useful next step or context for your decision." className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6]" /></label></div><div className="mt-4 flex flex-wrap justify-end gap-2"><button onClick={() => onDecision('Not selected', feedback, 0)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"><XCircle className="size-3.5" />Not selected</button><button onClick={() => onDecision('Revision requested', feedback, 0)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-200 px-3 text-xs font-semibold text-amber-800 transition hover:bg-amber-50"><MessageSquareText className="size-3.5" />Request revision</button><button onClick={() => onDecision('Approved', feedback, Math.max(0, Number(budget) || 0))} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1e5689] px-3.5 text-xs font-bold text-white transition hover:bg-[#164775]"><CheckCircle2 className="size-3.5" />Approve venture</button></div></div>}
-  </div>;
+
+  return (
+    <div>
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <StatusBadge status={venture.status} />
+        <span className="rounded-full bg-[#f0f4f8] px-2.5 py-1 text-[10px] font-semibold text-slate-600">
+          {venture.category}
+        </span>
+      </div>
+      <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+        <Detail label="Founder" value={venture.founder} />
+        <Detail label="University" value={venture.university} />
+        <Detail label="Contact" value={venture.email} />
+        <Detail label="Submitted" value={dateLabel(venture.createdAt)} />
+        <Detail label="Requested funding" value={`₹ ${venture.requestedAmount} Lakhs`} />
+        {venture.approvedBudget !== undefined && (
+          <Detail label="Approved budget" value={`₹ ${venture.approvedBudget} Lakhs`} />
+        )}
+      </div>
+      <div className="mt-5 space-y-4 border-t border-slate-100 pt-5">
+        <DetailBlock label="The Project Idea" text={venture.description} />
+        <DetailBlock label="Business Model" text={venture.businessModel} />
+        <DetailBlock label="Planned Use of Funds" text={venture.useOfFunds} />
+      </div>
+      {venture.feedback && (
+        <div className="mt-5 rounded-xl border-l-2 border-[#83a9ca] bg-[#f6f9fc] px-4 py-3">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[.1em] text-[#537697]">
+            Reviewer Feedback
+          </p>
+          <p className="text-xs leading-5 text-slate-600">{venture.feedback}</p>
+        </div>
+      )}
+
+      {/* Signal Interest */}
+      <div className="mt-5 flex items-center justify-between rounded-xl border border-blue-100 bg-[#f5f9fc] px-4 py-3">
+        <div>
+          <p className="text-xs font-bold text-[#2b425a]">Investor Interest</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            {venture.interests.length
+              ? `${venture.interests.length} interested ${
+                  venture.interests.length === 1 ? 'party' : 'parties'
+                }`
+              : 'Be the first investor to signal interest.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onInterest}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition ${
+            interested
+              ? 'border border-blue-300 bg-white text-blue-700'
+              : 'bg-[#1877f2] text-white hover:bg-[#1264ce]'
+          }`}
+        >
+          <Bookmark className={`size-3.5 ${interested ? 'fill-current' : ''}`} />
+          {interested ? 'Withdraw interest' : 'Signal interest'}
+        </button>
+      </div>
+
+      {isAdmin && (
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
+            Record Decision & Allocate Grant
+          </p>
+          <div className="grid gap-3 sm:grid-cols-[.7fr_1.3fr]">
+            <label className="block text-xs font-semibold text-slate-600">
+              Approved budget (₹ Lakhs)
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-normal text-slate-800 outline-none focus:border-[#76a0c6]"
+              />
+            </label>
+            <label className="block text-xs font-semibold text-slate-600">
+              Guidance for Founder
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                rows={3}
+                placeholder="Share guidance or reasons for your grant decision."
+                className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6]"
+              />
+            </label>
+          </div>
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => onDecision('Not selected', feedback, 0)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-200 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+            >
+              <XCircle className="size-3.5" />
+              Not selected
+            </button>
+            <button
+              type="button"
+              onClick={() => onDecision('Revision requested', feedback, 0)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-200 px-3 text-xs font-semibold text-amber-800 transition hover:bg-amber-50"
+            >
+              <MessageSquareText className="size-3.5" />
+              Request revision
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                onDecision('Approved', feedback, Math.max(0, Number(budget) || 0))
+              }
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#1877f2] px-3.5 text-xs font-bold text-white transition hover:bg-[#1264ce]"
+            >
+              <CheckCircle2 className="size-3.5" />
+              Approve Project
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function Detail({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-[10px] font-bold uppercase tracking-[.1em] text-slate-400">{label}</p><p className="mt-1 text-xs font-semibold text-[#344a62]">{value}</p></div>;
-}
-function DetailBlock({ label, text }: { label: string; text: string }) {
-  return <div><h3 className="mb-1.5 text-xs font-bold text-[#304760]">{label}</h3><p className="text-xs leading-6 text-slate-600">{text}</p></div>;
+  return (
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-[.1em] text-slate-400">{label}</p>
+      <p className="mt-1 text-xs font-semibold text-[#344a62]">{value}</p>
+    </div>
+  );
 }
 
-export default App;
+function DetailBlock({ label, text }: { label: string; text: string }) {
+  return (
+    <div>
+      <h3 className="mb-1.5 text-xs font-bold text-[#304760]">{label}</h3>
+      <p className="text-xs leading-6 text-slate-600">{text}</p>
+    </div>
+  );
+}

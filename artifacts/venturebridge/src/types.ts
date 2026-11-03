@@ -18,6 +18,8 @@ export interface Venture {
   feedback: string;
   createdAt: string;
   interests: string[];
+  imageUrl?: string;
+  priceRange?: string;
 }
 
 export interface DemoData {
