@@ -89,12 +89,12 @@ interface PriceRange {
 }
 
 const PRICE_RANGES: PriceRange[] = [
-  { id: '50+', label: '50+', min: 50, max: Infinity },
-  { id: '30-50', label: '30 - 50', min: 30, max: 50 },
-  { id: '15-30', label: '15 - 30', min: 15, max: 30 },
-  { id: '10-15', label: '10 - 15', min: 10, max: 15 },
-  { id: '5-10', label: '5 - 10', min: 5, max: 10 },
-  { id: '2-5', label: '2 - 5', min: 2, max: 5 },
+  { id: '50+', label: '1Cr +', min: 50, max: Infinity },
+  { id: '30-50', label: '50L - 1Cr', min: 30, max: 50 },
+  { id: '15-30', label: '15L - 30L', min: 15, max: 30 },
+  { id: '10-15', label: '10L - 15L', min: 10, max: 15 },
+  { id: '5-10', label: '5L - 10L', min: 5, max: 10 },
+  { id: '2-5', label: '2L - 5L', min: 2, max: 5 },
 ];
 
 const CATEGORIES = [
@@ -229,9 +229,8 @@ function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        className={`max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl ${
-          wide ? 'max-w-3xl' : 'max-w-xl'
-        }`}
+        className={`max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl ${wide ? 'max-w-3xl' : 'max-w-xl'
+          }`}
       >
         <header className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur sm:px-7">
           <div>
@@ -290,6 +289,35 @@ function Metric({
       <p className="mt-2 text-xs text-slate-500">{note}</p>
     </article>
   );
+}
+
+// Accurate relevance scoring function for search
+function getSearchRelevance(v: Venture, query: string): number {
+  const q = query.toLowerCase().trim();
+  if (!q) return 0;
+
+  const name = v.name.toLowerCase();
+  const cat = v.category.toLowerCase();
+  const founder = v.founder.toLowerCase();
+  const wordsInName = name.split(/[\s\-]+/);
+
+  // 1. Exact name match
+  if (name === q) return 1000;
+  // 2. Name starts with query (e.g. "Medi" -> "MediConnect")
+  if (name.startsWith(q)) return 500;
+  // 3. Any word in name starts with query (e.g. "AI" -> "Smart Farming with AI")
+  if (wordsInName.some((w) => w.startsWith(q))) return 300;
+  // 4. Name contains query
+  if (name.includes(q)) return 200;
+  // 5. Category starts with query
+  if (cat.startsWith(q)) return 150;
+  // 6. Founder word starts with query
+  if (founder.split(/[\s\-]+/).some((w) => w.startsWith(q))) return 120;
+  // 7. Word in tagline starts with query (strict word-boundary match so "intermediaries" doesn't match "medi")
+  const wordsInTagline = v.tagline.toLowerCase().split(/[\s\-.,()]+/);
+  if (wordsInTagline.some((w) => w.startsWith(q))) return 100;
+
+  return 0;
 }
 
 export default function App() {
@@ -404,6 +432,16 @@ export default function App() {
     inform(interested ? 'Interest withdrawn.' : 'Your interest has been signaled to the founder!');
   };
 
+    // Computed search results ranked by relevance
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return data.ventures
+      .map((v) => ({ venture: v, score: getSearchRelevance(v, searchQuery) }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.venture);
+  }, [data.ventures, searchQuery]);
+
   // Top 3 Featured Highlights
   const topFeatured = useMemo(() => {
     return data.ventures.slice(0, 3);
@@ -494,28 +532,75 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#fafbfc] text-[#1c2e45] selection:bg-blue-100 selection:text-blue-900 flex flex-col justify-between">
       <div>
-        {/* 1. TOP HEADER & SEARCH BAR */}
+        {/* 1. TOP HEADER & ADAPTIVE SEARCH BAR */}
         <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-            {/* Logo */}
-            <IdeaBridgeLogo onClick={() => { setSelectedRange(null); setSelectedCategory('Retail'); setSearchQuery(''); }} />
+          <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
+            {/* Top row: Logo on left, Actions on right */}
+            <div className="flex h-14 items-center justify-between gap-3 py-2">
+              <IdeaBridgeLogo onClick={() => { setSelectedRange(null); setSelectedCategory('Retail'); setSearchQuery(''); }} />
 
-            {/* Central Search Bar */}
-            <div className="max-w-2xl flex-1 px-2 sm:px-6">
+              {/* Central Search Bar (Desktop only) */}
+              <div className="hidden sm:block max-w-xl flex-1 px-4 lg:px-8">
+                <div className="relative w-full">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search projects, startups, founders, or keywords..."
+                    className="h-10 w-full rounded-full border border-slate-200 bg-[#f8fafc] pl-10 pr-9 text-xs sm:text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      aria-label="Clear search"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Action Buttons */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSubmitModal(true)}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-blue-50 px-3 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
+                >
+                  <Plus className="size-3.5" />
+                  <span className="hidden sm:inline">List Project</span>
+                  <span className="sm:hidden">List</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100"
+                  aria-label="Toggle menu"
+                >
+                  <Menu className="size-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Dedicated Full-Width Search Bar on Mobile (< sm) */}
+            <div className="block sm:hidden pb-2.5">
               <div className="relative w-full">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search projects, startups, founders, or keywords..."
-                  className="h-10 w-full rounded-full border border-slate-200 bg-[#f8fafc] pl-10 pr-9 text-xs sm:text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  placeholder="Search projects, startups, founders..."
+                  className="h-10 w-full rounded-full border border-slate-200 bg-[#f8fafc] pl-9 pr-9 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 shadow-2xs"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
                     aria-label="Clear search"
                   >
                     <X className="size-3.5" />
@@ -523,31 +608,11 @@ export default function App() {
                 )}
               </div>
             </div>
-
-            {/* Right Menu Button */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSubmitModal(true)}
-                className="hidden sm:inline-flex h-9 items-center gap-1.5 rounded-full bg-blue-50 px-3.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
-              >
-                <Plus className="size-3.5" />
-                <span>List Project</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100"
-                aria-label="Toggle menu"
-              >
-                <Menu className="size-5" />
-              </button>
-            </div>
           </div>
 
-          {/* 2. PRICE RANGE ROW */}
-          <div className="border-t border-slate-100 bg-[#fbfcfd] px-4 py-2.5">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+          {/* 2. PRICE RANGE ROW - Horizontal scrollable on mobile */}
+          <div className="border-t border-slate-100 bg-[#fbfcfd] px-3 sm:px-4 py-2">
+            <div className="mx-auto flex max-w-7xl items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth px-1 sm:justify-center sm:flex-wrap">
               {PRICE_RANGES.slice().reverse().map((range) => {
                 const active = selectedRange === range.id;
                 const count = rangeGroups[range.id]?.length || 0;
@@ -556,7 +621,7 @@ export default function App() {
                     key={range.id}
                     type="button"
                     onClick={() => setSelectedRange(active ? null : range.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold transition ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
                       active
                         ? 'bg-[#1877f2] text-white shadow-sm ring-2 ring-blue-300/40'
                         : 'border border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
@@ -579,7 +644,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setSelectedRange(null)}
-                  className="text-[11px] font-medium text-slate-400 underline decoration-slate-300 underline-offset-2 hover:text-slate-600"
+                  className="shrink-0 whitespace-nowrap text-[11px] font-medium text-slate-400 underline decoration-slate-300 underline-offset-2 hover:text-slate-600 px-1"
                 >
                   Show all ranges
                 </button>
@@ -588,8 +653,8 @@ export default function App() {
           </div>
 
           {/* 3. CATEGORY TABS (Retail, Manufacturing, Service) */}
-          <div className="border-t border-slate-100 bg-white px-4">
-            <div className="mx-auto flex max-w-7xl items-center justify-center gap-6 sm:gap-10">
+          <div className="border-t border-slate-100 bg-white px-3 sm:px-4">
+            <div className="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto no-scrollbar justify-start sm:justify-center px-1">
               {CATEGORIES.map(({ id, label, icon: Icon }) => {
                 const active = selectedCategory === id;
                 return (
@@ -597,7 +662,7 @@ export default function App() {
                     key={id}
                     type="button"
                     onClick={() => setSelectedCategory(active ? 'All' : id)}
-                    className={`group relative flex items-center gap-2 py-3 text-xs sm:text-sm font-semibold transition ${
+                    className={`group relative flex shrink-0 items-center gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition ${
                       active ? 'text-[#1877f2]' : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -716,6 +781,103 @@ export default function App() {
 
         {/* MAIN CONTAINER */}
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-12">
+          {searchQuery.trim() ? (
+            /* SEARCH RESULTS VIEW: MATCHED PROJECTS SHOW ON TOP, EVERYTHING ELSE IS GONE */
+            <section className="space-y-6 pt-2 animate-rise">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
+                      Search Results for "{searchQuery}"
+                    </h2>
+                    <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">
+                      {searchResults.length}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Showing matching projects on top. All other unrelated projects are hidden.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition self-start sm:self-auto"
+                >
+                  <X className="size-3.5 text-slate-400" />
+                  <span>Clear Search</span>
+                </button>
+              </div>
+
+              {/* Matched project cards displayed directly on top */}
+              {searchResults.length > 0 ? (
+                <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+                  {searchResults.map((venture) => (
+                    <FeaturedHighlightCard
+                      key={venture.id}
+                      venture={venture}
+                      onSelect={() => setSelectedVenture(venture)}
+                      onInterest={() => toggleInterest(venture)}
+                      isInterested={venture.interests.includes(displayName || 'Interested Investor')}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+                  <Search className="size-8 text-slate-300" />
+                  <h3 className="mt-3 text-sm font-bold text-slate-700">No project matched "{searchQuery}"</h3>
+                  <p className="mt-1 text-xs text-slate-400">Please check the spelling or search for another keyword.</p>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 transition"
+                  >
+                    Clear Search & View All
+                  </button>
+                </div>
+              )}
+
+              {/* Price Range Breakdown: ONLY rows that have matching ventures; empty rows are GONE! */}
+              {searchResults.length > 0 && (
+                <div className="space-y-3 pt-6 border-t border-slate-100">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Price Range Breakdown
+                  </h3>
+                  {PRICE_RANGES.map((range) => {
+                    const ventures = rangeGroups[range.id] || [];
+                    if (ventures.length === 0) return null; // Empty rows remain GONE!
+
+                    return (
+                      <div
+                        key={range.id}
+                        className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/20 p-3 shadow-2xs"
+                      >
+                        <div className="flex shrink-0 items-center gap-3 px-3 py-1">
+                          <div className="h-7 w-1 rounded-full bg-[#1877f2]" />
+                          <span className="w-16 text-sm font-extrabold text-[#112d4e]">
+                            {range.label}
+                          </span>
+                        </div>
+                        <div className="grid flex-1 gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                          {ventures.map((v) => (
+                            <CompactProjectCard
+                              key={v.id}
+                              venture={v}
+                              onSelect={() => setSelectedVenture(v)}
+                              onInterest={() => toggleInterest(v)}
+                              isInterested={v.interests.includes(displayName || 'Interested Investor')}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          ) : (
+            /* NORMAL HOME VIEW - HERO BANNER, FEATURED HIGHLIGHTS, PRICE ROWS, STORIES, BLOG */
+            <>
+
           {/* 4. HERO BANNER CARD */}
           <section className="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-r from-[#edf5ff] via-[#e5f0fc] to-[#e0edfb] p-6 sm:p-10 shadow-[0_4px_20px_rgba(23,103,197,.06)]">
             <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-blue-200/25 blur-3xl" />
@@ -854,11 +1016,10 @@ export default function App() {
                 return (
                   <div
                     key={range.id}
-                    className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 rounded-2xl border p-3 transition ${
-                      isRangeSelected
+                    className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 rounded-2xl border p-3 transition ${isRangeSelected
                         ? 'border-blue-400 bg-blue-50/40 shadow-sm'
                         : 'border-slate-200/80 bg-white hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     {/* Left Side Panel Range Tag with Blue Line Indicator */}
                     <button
@@ -924,68 +1085,69 @@ export default function App() {
           </section>
 
           {/* 6. SUCCESS STORIES SECTION (TAB SLIDER FORM) */}
-          <section className="space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
-                  Success Stories
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Real experiences from founders and investors who connected on IdeaBridge.
-                </p>
+          <section className="space-y-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-[var(--app-font-serif)] text-xl sm:text-2xl font-bold tracking-tight text-[#112d4e]">
+                    Success Stories
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">
+                    Real experiences from founders and investors who connected on IdeaBridge.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Slider Controls */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setStoryPage((prev) => Math.max(0, prev - 1))}
+                      disabled={storyPage === 0}
+                      className="flex size-7 sm:size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition shadow-2xs"
+                      aria-label="Previous story slide"
+                    >
+                      <ChevronLeft className="size-3.5 sm:size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStoryPage((prev) => (prev + 1) * 3 < filteredStories.length ? prev + 1 : 0)}
+                      className="flex size-7 sm:size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition shadow-2xs"
+                      aria-label="Next story slide"
+                    >
+                      <ChevronRight className="size-3.5 sm:size-4" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => inform('More verified founder stories coming soon!')}
+                    className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline ml-2"
+                  >
+                    <span>View More</span>
+                    <ArrowRight className="size-3.5" />
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                {/* Tab Filter Pills */}
-                <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-2xs">
-                  {(['All', 'Founders', 'Investors', 'Mentors'] as const).map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => {
-                        setStoryTag(tag);
-                        setStoryPage(0);
-                      }}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                        storyTag === tag
-                          ? 'bg-[#1877f2] text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Slider Controls */}
-                <div className="flex items-center gap-1">
+              {/* Tab Filter Pills (smooth horizontal scroll on mobile) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+                {(['All', 'Founders', 'Investors', 'Mentors'] as const).map((tag) => (
                   <button
+                    key={tag}
                     type="button"
-                    onClick={() => setStoryPage((prev) => Math.max(0, prev - 1))}
-                    disabled={storyPage === 0}
-                    className="flex size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition"
-                    aria-label="Previous story slide"
+                    onClick={() => {
+                      setStoryTag(tag);
+                      setStoryPage(0);
+                    }}
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
+                      storyTag === tag
+                        ? 'bg-[#1877f2] text-white shadow-xs'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:text-slate-900'
+                    }`}
                   >
-                    <ChevronLeft className="size-4" />
+                    {tag}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setStoryPage((prev) => (prev + 1) * 3 < filteredStories.length ? prev + 1 : 0)}
-                    className="flex size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition"
-                    aria-label="Next story slide"
-                  >
-                    <ChevronRight className="size-4" />
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => inform('More verified founder stories coming soon!')}
-                  className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
-                >
-                  <span>View More</span>
-                  <ArrowRight className="size-3.5" />
-                </button>
+                ))}
               </div>
             </div>
 
@@ -1098,7 +1260,10 @@ export default function App() {
               ))}
             </div>
           </section>
-        </main>
+        
+            </>
+          )}
+</main>
       </div>
 
       {/* 8. DARK FOOTER MATCHING EXACT REFERENCE IMAGE */}
@@ -1394,7 +1559,7 @@ function FeaturedHighlightCard({
         {/* Left Thumbnail Image */}
         <div
           onClick={onSelect}
-          className="relative size-24 shrink-0 cursor-pointer overflow-hidden rounded-xl bg-slate-100"
+          className="relative size-20 sm:size-24 shrink-0 cursor-pointer overflow-hidden rounded-xl bg-slate-100"
         >
           <img
             src={venture.imageUrl || 'https://images.unsplash.com/photo-1527842891421-42eec6e703ea?w=300&auto=format&fit=crop&q=80'}
@@ -1439,9 +1604,8 @@ function FeaturedHighlightCard({
         <button
           type="button"
           onClick={onInterest}
-          className={`p-1 transition ${
-            isInterested ? 'text-blue-600' : 'text-slate-400 hover:text-blue-600'
-          }`}
+          className={`p-1 transition ${isInterested ? 'text-blue-600' : 'text-slate-400 hover:text-blue-600'
+            }`}
           title={isInterested ? 'Bookmarked' : 'Bookmark project'}
         >
           <Bookmark className={`size-3.5 ${isInterested ? 'fill-current' : ''}`} />
@@ -1506,9 +1670,8 @@ function CompactProjectCard({
           e.stopPropagation();
           onInterest();
         }}
-        className={`p-1 transition opacity-70 group-hover:opacity-100 ${
-          isInterested ? 'text-blue-600' : 'text-slate-300 hover:text-blue-600'
-        }`}
+        className={`p-1 transition opacity-70 group-hover:opacity-100 ${isInterested ? 'text-blue-600' : 'text-slate-300 hover:text-blue-600'
+          }`}
       >
         <Bookmark className={`size-3.5 ${isInterested ? 'fill-current' : ''}`} />
       </button>
@@ -1562,16 +1725,16 @@ function renderWorkspaceView({
   const nav: { key: Page; label: string; icon: typeof LayoutDashboard }[] =
     role === 'student'
       ? [
-          { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-          { key: 'applications', label: 'My applications', icon: FileText },
-          { key: 'submit', label: 'New application', icon: FilePlus2 },
-        ]
+        { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { key: 'applications', label: 'My applications', icon: FileText },
+        { key: 'submit', label: 'New application', icon: FilePlus2 },
+      ]
       : role === 'admin'
-      ? [
+        ? [
           { key: 'overview', label: 'Overview', icon: LayoutDashboard },
           { key: 'review', label: 'Review queue', icon: ShieldCheck },
         ]
-      : [
+        : [
           { key: 'overview', label: 'Overview', icon: LayoutDashboard },
           { key: 'discover', label: 'Discover ventures', icon: Compass },
         ];
@@ -1588,9 +1751,8 @@ function renderWorkspaceView({
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[256px] flex-col border-r border-[#e7ebf1] bg-white px-4 transition-transform duration-200 md:translate-x-0 ${
-          mobileNav ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 flex w-[256px] flex-col border-r border-[#e7ebf1] bg-white px-4 transition-transform duration-200 md:translate-x-0 ${mobileNav ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex h-[76px] items-center justify-between px-2">
           <IdeaBridgeLogo onClick={() => setPage('front')} />
@@ -1624,16 +1786,14 @@ function renderWorkspaceView({
                 setPage(item.key);
                 setMobileNav(false);
               }}
-              className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition ${
-                page === item.key
+              className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition ${page === item.key
                   ? 'bg-[#eaf2fa] text-[#1c578a]'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-[#243c57]'
-              }`}
+                }`}
             >
               <item.icon
-                className={`size-[17px] ${
-                  page === item.key ? 'text-[#286697]' : 'text-slate-400 group-hover:text-slate-600'
-                }`}
+                className={`size-[17px] ${page === item.key ? 'text-[#286697]' : 'text-slate-400 group-hover:text-slate-600'
+                  }`}
               />
               {item.label}
             </button>
@@ -2086,20 +2246,18 @@ function VentureDetails({
           <p className="text-xs font-bold text-[#2b425a]">Investor Interest</p>
           <p className="mt-1 text-[11px] text-slate-500">
             {venture.interests.length
-              ? `${venture.interests.length} interested ${
-                  venture.interests.length === 1 ? 'party' : 'parties'
-                }`
+              ? `${venture.interests.length} interested ${venture.interests.length === 1 ? 'party' : 'parties'
+              }`
               : 'Be the first investor to signal interest.'}
           </p>
         </div>
         <button
           type="button"
           onClick={onInterest}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition ${
-            interested
+          className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition ${interested
               ? 'border border-blue-300 bg-white text-blue-700'
               : 'bg-[#1877f2] text-white hover:bg-[#1264ce]'
-          }`}
+            }`}
         >
           <Bookmark className={`size-3.5 ${interested ? 'fill-current' : ''}`} />
           {interested ? 'Withdraw interest' : 'Signal interest'}
