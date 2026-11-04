@@ -15,7 +15,7 @@ export interface Venture {
   requestedAmount: number;
   approvedBudget?: number;
   status: VentureStatus;
-  feedback: string;
+  feedback?: string;
   createdAt: string;
   interests: string[];
   imageUrl?: string;
