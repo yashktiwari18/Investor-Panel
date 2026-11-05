@@ -81,7 +81,7 @@ function IdeaBridgeLogo({ onClick, light = false }: { onClick?: () => void; ligh
       </div>
       <div>
         <span className={`text-[20px] font-extrabold tracking-tight ${light ? 'text-white' : 'text-[#0f2d52]'}`}>
-          Idea<span className="text-[#3b82f6]">Bridge</span>
+          Idea<span className="text-[#3b82f6]">Bridges</span>
         </span>
       </div>
     </button>
@@ -492,7 +492,7 @@ export default function App() {
     inform(interested ? 'Interest withdrawn.' : 'Your investment interest has been signaled to the founder!');
   };
 
-    // Computed search results ranked by relevance
+  // Computed search results ranked by relevance
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     return data.ventures
@@ -564,7 +564,7 @@ export default function App() {
     [data.ventures],
   );
 
-    // Dedicated Creator Auth (Login / Signup for Project Creators)
+  // Dedicated Creator Auth (Login / Signup for Project Creators)
   if (page === 'creator-auth') {
     return (
       <CreatorAuthPage
@@ -762,18 +762,16 @@ export default function App() {
                         key={`m1-${range.id}`}
                         type="button"
                         onClick={() => setSelectedRange(active ? null : range.id)}
-                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
-                          active
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${active
                             ? 'bg-[#1877f2] text-white shadow-sm ring-2 ring-blue-300/40'
                             : 'border border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         <span>₹ {range.label}</span>
                         {count > 0 && (
                           <span
-                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                              active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                            }`}
+                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                              }`}
                           >
                             {count}
                           </span>
@@ -793,18 +791,16 @@ export default function App() {
                         key={`m2-${range.id}`}
                         type="button"
                         onClick={() => setSelectedRange(active ? null : range.id)}
-                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
-                          active
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${active
                             ? 'bg-[#1877f2] text-white shadow-sm ring-2 ring-blue-300/40'
                             : 'border border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         <span>₹ {range.label}</span>
                         {count > 0 && (
                           <span
-                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                              active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                            }`}
+                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                              }`}
                           >
                             {count}
                           </span>
@@ -826,18 +822,16 @@ export default function App() {
                     key={`d-${range.id}`}
                     type="button"
                     onClick={() => setSelectedRange(active ? null : range.id)}
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
-                      active
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${active
                         ? 'bg-[#1877f2] text-white shadow-sm ring-2 ring-blue-300/40'
                         : 'border border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     <span>₹ {range.label}</span>
                     {count > 0 && (
                       <span
-                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                          active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                        }`}
+                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                          }`}
                       >
                         {count}
                       </span>
@@ -867,14 +861,12 @@ export default function App() {
                     key={id}
                     type="button"
                     onClick={() => setSelectedCategory(active ? 'All' : id)}
-                    className={`group relative flex shrink-0 items-center gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition ${
-                      active ? 'text-[#1877f2]' : 'text-slate-500 hover:text-slate-800'
-                    }`}
+                    className={`group relative flex shrink-0 items-center gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition ${active ? 'text-[#1877f2]' : 'text-slate-500 hover:text-slate-800'
+                      }`}
                   >
                     <Icon
-                      className={`size-4 transition ${
-                        active ? 'text-[#1877f2]' : 'text-slate-400 group-hover:text-slate-600'
-                      }`}
+                      className={`size-4 transition ${active ? 'text-[#1877f2]' : 'text-slate-400 group-hover:text-slate-600'
+                        }`}
                     />
                     <span>{label}</span>
                     {active && (
@@ -1087,494 +1079,493 @@ export default function App() {
             /* NORMAL HOME VIEW - HERO BANNER, FEATURED HIGHLIGHTS, PRICE ROWS, STORIES, BLOG */
             <>
 
-          {/* 4. HERO BANNER CARD */}
-          <section className="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-r from-[#edf5ff] via-[#e5f0fc] to-[#e0edfb] p-6 sm:p-10 shadow-[0_4px_20px_rgba(23,103,197,.06)]">
-            <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-blue-200/25 blur-3xl" />
-            <div className="pointer-events-none absolute -left-16 -bottom-16 size-72 rounded-full bg-sky-200/30 blur-2xl" />
+              {/* 4. HERO BANNER CARD */}
+              <section className="relative overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-r from-[#edf5ff] via-[#e5f0fc] to-[#e0edfb] p-6 sm:p-10 shadow-[0_4px_20px_rgba(23,103,197,.06)]">
+                <div className="pointer-events-none absolute -right-20 -top-20 size-80 rounded-full bg-blue-200/25 blur-3xl" />
+                <div className="pointer-events-none absolute -left-16 -bottom-16 size-72 rounded-full bg-sky-200/30 blur-2xl" />
 
-            <div className="relative grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
-              {/* Left Content */}
-              <div className="space-y-4">
-                <span className="inline-block text-[11px] font-extrabold uppercase tracking-widest text-[#156ec9]">
-                  Connect Ideas With Opportunities
-                </span>
-                <h1 className="font-[var(--app-font-serif)] text-3xl font-extrabold leading-[1.15] tracking-tight text-[#0f2d52] sm:text-4xl lg:text-[42px]">
-                  Turn Your Ideas Into Real-World Impact
-                </h1>
-                <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
-                  A platform where students and innovators showcase ideas, and investors discover
-                  high-potential opportunities.
-                </p>
+                <div className="relative grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
+                  {/* Left Content */}
+                  <div className="space-y-4">
+                    <span className="inline-block text-[11px] font-extrabold uppercase tracking-widest text-[#156ec9]">
+                      Connect Ideas With Opportunities
+                    </span>
+                    <h1 className="font-[var(--app-font-serif)] text-3xl font-extrabold leading-[1.15] tracking-tight text-[#0f2d52] sm:text-4xl lg:text-[42px]">
+                      Turn Your Ideas Into Real-World Impact
+                    </h1>
+                    <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
+                      A platform where students and innovators showcase ideas, and investors discover
+                      high-potential opportunities.
+                    </p>
 
-                {/* Action Buttons */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (role === 'student') {
-                        setSubmitModal(true);
-                      } else {
-                        setPage('creator-auth');
-                      }
-                    }}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1877f2] px-6 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#1264ce] focus:outline-none focus:ring-4 focus:ring-blue-200"
-                  >
-                    <span>List Your Project</span>
-                    <ArrowRight className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (role === 'investor') {
-                        enterWorkspace('investor', displayName || 'Northstar Ventures');
-                      } else {
-                        setPage('investor-auth');
-                      }
-                    }}
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-300/80 bg-white/90 px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white hover:text-blue-700"
-                  >
-                    <span>Explore Investors</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Graphic / Doodle Composition */}
-              <div className="relative flex items-center justify-center lg:justify-end">
-                <div className="relative w-full max-w-md rounded-2xl bg-white/60 p-5 shadow-sm backdrop-blur-sm border border-white/80">
-                  <div className="absolute -top-3.5 right-4 z-10 flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-bold text-blue-700 shadow-sm">
-                    <Sparkles className="size-3 text-amber-500 fill-amber-400" />
-                    <span>+ Ideas Build Tomorrow</span>
-                  </div>
-
-                  <div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-blue-600 text-white shadow-md ring-4 ring-white">
-                        <GraduationCap className="size-7" />
-                      </div>
-                      <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
-                        <svg viewBox="0 0 24 24" className="size-5 fill-current">
-                          <path d="M12 2.5s-4 4.5-4 10.5c0 2 1 3.5 1 3.5l1.5-1.5L12 18l1.5-3 1.5 1.5s1-1.5 1-3.5C16 7 12 2.5 12 2.5z" />
-                          <circle cx="12" cy="9" r="1.5" fill="#fff" />
-                        </svg>
-                      </div>
-                      <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-md ring-4 ring-white">
-                        <User className="size-7" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="font-semibold text-slate-800 text-sm">
-                        Collaborative Student Innovation
-                      </p>
-                      <p className="text-xs text-slate-500 max-w-xs">
-                        Join 120+ student startups raising non-dilutive campus grants and angel investments.
-                      </p>
-                    </div>
-
-                    <div className="grid w-full grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-center">
-                      <div>
-                        <p className="text-xs font-bold text-slate-800">100%</p>
-                        <p className="text-[10px] text-slate-400">Campus Verified</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800">₹ 2.4 Cr+</p>
-                        <p className="text-[10px] text-slate-400">Grants Funded</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800">45+</p>
-                        <p className="text-[10px] text-slate-400">Active Mentors</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* 5. FEATURED PROJECTS SECTION MATCHING EXACT SCREENSHOT */}
-          <section className="space-y-6">
-            {/* Header Row: Featured Projects & View More -> */}
-            <div className="flex items-center justify-between">
-              <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
-                Featured Projects
-              </h2>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedRange(null);
-                  inform('Showing all featured pipeline ventures.');
-                }}
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
-              >
-                <span>View More</span>
-                <ArrowRight className="size-3.5" />
-              </button>
-            </div>
-
-            {/* Top 3 Featured Highlight Cards */}
-            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
-              {topFeatured.map((venture) => (
-                <FeaturedHighlightCard
-                  key={venture.id}
-                  venture={venture}
-                  onSelect={() => setSelectedVenture(venture)}
-                  onInterest={() => toggleInterest(venture)}
-                  isInterested={venture.interests.includes(displayName || 'Interested Investor')}
-                />
-              ))}
-            </div>
-
-            {/* Price Range Rows with Left Side-Panel Indicators */}
-            <div className="space-y-3 pt-2">
-              {PRICE_RANGES.map((range) => {
-                const ventures = rangeGroups[range.id] || [];
-                const isRangeSelected = selectedRange === range.id;
-
-                if (selectedRange && !isRangeSelected) {
-                  return null;
-                }
-
-                return (
-                  <div
-                    key={range.id}
-                    className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 rounded-2xl border p-3 transition ${isRangeSelected
-                        ? 'border-blue-400 bg-blue-50/40 shadow-sm'
-                        : 'border-slate-200/80 bg-white hover:border-slate-300'
-                      }`}
-                  >
-                    {/* Left Side Panel Range Tag with Blue Line Indicator */}
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRange(isRangeSelected ? null : range.id)}
-                      className="flex shrink-0 items-center gap-3 px-3 py-1 text-left group"
-                      title={`Click to filter by ${range.label}`}
-                    >
-                      <div className="h-7 w-1 rounded-full bg-[#1877f2]" />
-                      <span className="w-16 text-sm font-extrabold text-[#112d4e] group-hover:text-blue-600 transition">
-                        {range.label}
-                      </span>
-                    </button>
-
-                    {/* 3 Compact Project Cards in this Row */}
-                    <div className="grid flex-1 gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-                      {ventures.slice(0, 3).map((v) => (
-                        <CompactProjectCard
-                          key={v.id}
-                          venture={v}
-                          onSelect={() => setSelectedVenture(v)}
-                          onInterest={() => toggleInterest(v)}
-                          isInterested={v.interests.includes(displayName || 'Interested Investor')}
-                        />
-                      ))}
-                      {ventures.length === 0 && (
-                        <div className="col-span-3 py-3 text-center text-xs text-slate-400">
-                          No projects currently listed in ₹ {range.label}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right Circular Blue Arrow Button */}
-                    <div className="hidden lg:flex shrink-0 items-center justify-center pl-1">
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-3 pt-2">
                       <button
                         type="button"
                         onClick={() => {
-                          setSelectedRange(isRangeSelected ? null : range.id);
-                          inform(`Viewing projects in range ₹ ${range.label}`);
+                          if (role === 'student') {
+                            setSubmitModal(true);
+                          } else {
+                            setPage('creator-auth');
+                          }
                         }}
-                        className="flex size-9 items-center justify-center rounded-full bg-[#eef5fd] text-[#1877f2] transition hover:bg-blue-100 hover:scale-105"
-                        aria-label={`View more in ${range.label}`}
+                        className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1877f2] px-6 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#1264ce] focus:outline-none focus:ring-4 focus:ring-blue-200"
                       >
+                        <span>List Your Project</span>
                         <ArrowRight className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (role === 'investor') {
+                            enterWorkspace('investor', displayName || 'Northstar Ventures');
+                          } else {
+                            setPage('investor-auth');
+                          }
+                        }}
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-300/80 bg-white/90 px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white hover:text-blue-700"
+                      >
+                        <span>Explore Investors</span>
                       </button>
                     </div>
                   </div>
-                );
-              })}
 
-              {selectedRange && (
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRange(null)}
-                    className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
-                  >
-                    Show All Price Ranges
-                  </button>
-                </div>
-              )}
-            </div>
-          </section>
+                  {/* Right Graphic / Doodle Composition */}
+                  <div className="relative flex items-center justify-center lg:justify-end">
+                    <div className="relative w-full max-w-md rounded-2xl bg-white/60 p-5 shadow-sm backdrop-blur-sm border border-white/80">
+                      <div className="absolute -top-3.5 right-4 z-10 flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-bold text-blue-700 shadow-sm">
+                        <Sparkles className="size-3 text-amber-500 fill-amber-400" />
+                        <span>+ Ideas Build Tomorrow</span>
+                      </div>
 
-          {/* 6. SUCCESS STORIES SECTION (TAB SLIDER FORM) */}
-          <section className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-[var(--app-font-serif)] text-xl sm:text-2xl font-bold tracking-tight text-[#112d4e]">
-                    Success Stories
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">
-                    Real experiences from founders and investors who connected on IdeaBridge.
-                  </p>
-                </div>
+                      <div className="flex flex-col items-center justify-center space-y-4 py-4 text-center">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-sky-400 to-blue-600 text-white shadow-md ring-4 ring-white">
+                            <GraduationCap className="size-7" />
+                          </div>
+                          <div className="flex size-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
+                            <svg viewBox="0 0 24 24" className="size-5 fill-current">
+                              <path d="M12 2.5s-4 4.5-4 10.5c0 2 1 3.5 1 3.5l1.5-1.5L12 18l1.5-3 1.5 1.5s1-1.5 1-3.5C16 7 12 2.5 12 2.5z" />
+                              <circle cx="12" cy="9" r="1.5" fill="#fff" />
+                            </svg>
+                          </div>
+                          <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow-md ring-4 ring-white">
+                            <User className="size-7" />
+                          </div>
+                        </div>
 
-                <div className="flex items-center gap-2">
-                  {/* Slider Controls */}
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setStoryPage((prev) => Math.max(0, prev - 1))}
-                      disabled={storyPage === 0}
-                      className="flex size-7 sm:size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition shadow-2xs"
-                      aria-label="Previous story slide"
-                    >
-                      <ChevronLeft className="size-3.5 sm:size-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setStoryPage((prev) => (prev + 1) * 3 < filteredStories.length ? prev + 1 : 0)}
-                      className="flex size-7 sm:size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition shadow-2xs"
-                      aria-label="Next story slide"
-                    >
-                      <ChevronRight className="size-3.5 sm:size-4" />
-                    </button>
+                        <div className="space-y-1">
+                          <p className="font-semibold text-slate-800 text-sm">
+                            Collaborative Student Innovation
+                          </p>
+                          <p className="text-xs text-slate-500 max-w-xs">
+                            Join 120+ student startups raising non-dilutive campus grants and angel investments.
+                          </p>
+                        </div>
+
+                        <div className="grid w-full grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-center">
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">100%</p>
+                            <p className="text-[10px] text-slate-400">Campus Verified</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">₹ 2.4 Cr+</p>
+                            <p className="text-[10px] text-slate-400">Grants Funded</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">45+</p>
+                            <p className="text-[10px] text-slate-400">Active Mentors</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+              </section>
+
+              {/* 5. FEATURED PROJECTS SECTION MATCHING EXACT SCREENSHOT */}
+              <section className="space-y-6">
+                {/* Header Row: Featured Projects & View More -> */}
+                <div className="flex items-center justify-between">
+                  <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
+                    Featured Projects
+                  </h2>
                   <button
                     type="button"
-                    onClick={() => inform('More verified founder stories coming soon!')}
-                    className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline ml-2"
+                    onClick={() => {
+                      setSelectedRange(null);
+                      inform('Showing all featured pipeline ventures.');
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
                   >
                     <span>View More</span>
                     <ArrowRight className="size-3.5" />
                   </button>
                 </div>
-              </div>
 
-              {/* Tab Filter Pills (smooth horizontal scroll on mobile) */}
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
-                {(['All', 'Founders', 'Investors', 'Mentors'] as const).map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => {
-                      setStoryTag(tag);
-                      setStoryPage(0);
-                    }}
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
-                      storyTag === tag
-                        ? 'bg-[#1877f2] text-white shadow-xs'
-                        : 'border border-slate-200 bg-white text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Slider Cards Grid / Responsive Carousel */}
-            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
-              {currentStories.map((story) => (
-                <div
-                  key={story.id}
-                  className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
-                >
-                  <div className="flex gap-4 items-start">
-                    {/* User Avatar */}
-                    <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-2 ring-slate-100">
-                      <img
-                        src={story.avatar}
-                        alt={story.name}
-                        className="size-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    {/* Quote & Info */}
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <div className="flex items-center gap-1 text-blue-500">
-                        <Quote className="size-4 fill-current rotate-180 opacity-70" />
-                      </div>
-                      <p className="text-xs leading-relaxed text-slate-700 italic">
-                        "{story.quote}"
-                      </p>
-                      <div className="pt-1">
-                        <h4 className="text-xs font-bold text-[#112d4e]">
-                          {story.name}
-                        </h4>
-                        <p className="text-[11px] text-slate-500">
-                          {story.role}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* 7. ARTICLES & WRITE BLOG SECTION */}
-          <section className="space-y-4">
-            <div>
-              <h2 className="font-[var(--app-font-serif)] text-xl sm:text-2xl font-bold tracking-tight text-[#112d4e] whitespace-nowrap">
-                Articles & Write Blog
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Insights, investor checklists, and startup advice from the community.
-              </p>
-            </div>
-
-            {/* Articles Grid */}
-            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
-              {articles.map((art) => (
-                <article
-                  key={art.id}
-                  onClick={() => setSelectedArticle(art)}
-                  className="group flex cursor-pointer items-start gap-4 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
-                >
-                  {/* Thumbnail */}
-                  <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                    <img
-                      src={art.imageUrl}
-                      alt={art.title}
-                      className="size-full object-cover transition duration-300 group-hover:scale-105"
-                      loading="lazy"
+                {/* Top 3 Featured Highlight Cards */}
+                <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+                  {topFeatured.map((venture) => (
+                    <FeaturedHighlightCard
+                      key={venture.id}
+                      venture={venture}
+                      onSelect={() => setSelectedVenture(venture)}
+                      onInterest={() => toggleInterest(venture)}
+                      isInterested={venture.interests.includes(displayName || 'Interested Investor')}
                     />
-                  </div>
+                  ))}
+                </div>
 
-                  {/* Text Content */}
-                  <div className="min-w-0 flex-1 flex flex-col justify-between h-20">
-                    <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold leading-snug text-[#112d4e] group-hover:text-blue-600 transition">
-                      {art.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Clock3 className="size-3" />
-                        {art.date}
-                      </span>
-                      <span>·</span>
-                      <span>{art.readTime}</span>
+                {/* Price Range Rows with Left Side-Panel Indicators */}
+                <div className="space-y-3 pt-2">
+                  {PRICE_RANGES.map((range) => {
+                    const ventures = rangeGroups[range.id] || [];
+                    const isRangeSelected = selectedRange === range.id;
+
+                    if (selectedRange && !isRangeSelected) {
+                      return null;
+                    }
+
+                    return (
+                      <div
+                        key={range.id}
+                        className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 rounded-2xl border p-3 transition ${isRangeSelected
+                          ? 'border-blue-400 bg-blue-50/40 shadow-sm'
+                          : 'border-slate-200/80 bg-white hover:border-slate-300'
+                          }`}
+                      >
+                        {/* Left Side Panel Range Tag with Blue Line Indicator */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRange(isRangeSelected ? null : range.id)}
+                          className="flex shrink-0 items-center gap-3 px-3 py-1 text-left group"
+                          title={`Click to filter by ${range.label}`}
+                        >
+                          <div className="h-7 w-1 rounded-full bg-[#1877f2]" />
+                          <span className="w-16 text-sm font-extrabold text-[#112d4e] group-hover:text-blue-600 transition">
+                            {range.label}
+                          </span>
+                        </button>
+
+                        {/* 3 Compact Project Cards in this Row */}
+                        <div className="grid flex-1 gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                          {ventures.slice(0, 3).map((v) => (
+                            <CompactProjectCard
+                              key={v.id}
+                              venture={v}
+                              onSelect={() => setSelectedVenture(v)}
+                              onInterest={() => toggleInterest(v)}
+                              isInterested={v.interests.includes(displayName || 'Interested Investor')}
+                            />
+                          ))}
+                          {ventures.length === 0 && (
+                            <div className="col-span-3 py-3 text-center text-xs text-slate-400">
+                              No projects currently listed in ₹ {range.label}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right Circular Blue Arrow Button */}
+                        <div className="hidden lg:flex shrink-0 items-center justify-center pl-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedRange(isRangeSelected ? null : range.id);
+                              inform(`Viewing projects in range ₹ ${range.label}`);
+                            }}
+                            className="flex size-9 items-center justify-center rounded-full bg-[#eef5fd] text-[#1877f2] transition hover:bg-blue-100 hover:scale-105"
+                            aria-label={`View more in ${range.label}`}
+                          >
+                            <ArrowRight className="size-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {selectedRange && (
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRange(null)}
+                        className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+                      >
+                        Show All Price Ranges
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* 6. SUCCESS STORIES SECTION (TAB SLIDER FORM) */}
+              <section className="space-y-4">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="font-[var(--app-font-serif)] text-xl sm:text-2xl font-bold tracking-tight text-[#112d4e]">
+                        Success Stories
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-0.5 hidden sm:block">
+                        Real experiences from founders and investors who connected on IdeaBridge.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Slider Controls */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setStoryPage((prev) => Math.max(0, prev - 1))}
+                          disabled={storyPage === 0}
+                          className="flex size-7 sm:size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition shadow-2xs"
+                          aria-label="Previous story slide"
+                        >
+                          <ChevronLeft className="size-3.5 sm:size-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStoryPage((prev) => (prev + 1) * 3 < filteredStories.length ? prev + 1 : 0)}
+                          className="flex size-7 sm:size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition shadow-2xs"
+                          aria-label="Next story slide"
+                        >
+                          <ChevronRight className="size-3.5 sm:size-4" />
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => inform('More verified founder stories coming soon!')}
+                        className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline ml-2"
+                      >
+                        <span>View More</span>
+                        <ArrowRight className="size-3.5" />
+                      </button>
                     </div>
                   </div>
-                </article>
-              ))}
-            </div>
 
-            {/* View More at bottom of the section */}
-            <div className="flex justify-end pt-1">
-              <button
-                type="button"
-                onClick={() => inform('Viewing all community startup articles.')}
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
-              >
-                <span>View More</span>
-                <ArrowRight className="size-3.5" />
-              </button>
-            </div>
-          </section>
+                  {/* Tab Filter Pills (smooth horizontal scroll on mobile) */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+                    {(['All', 'Founders', 'Investors', 'Mentors'] as const).map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => {
+                          setStoryTag(tag);
+                          setStoryPage(0);
+                        }}
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${storyTag === tag
+                            ? 'bg-[#1877f2] text-white shadow-xs'
+                            : 'border border-slate-200 bg-white text-slate-600 hover:text-slate-900'
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-          {/* 8. ADVERTISEMENT SECTION (DIVIDED INTO 2 EQUAL PARTS) */}
-          <section id="advertisement" className="space-y-4">
-            <div className="grid gap-5 md:grid-cols-2">
-              {/* Part 1: Meta & Google Ads */}
-              <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-br from-[#f8fbff] via-white to-[#f0f7ff] p-5 sm:p-7 text-center transition hover:border-blue-300 shadow-2xs">
+                {/* Slider Cards Grid / Responsive Carousel */}
+                <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+                  {currentStories.map((story) => (
+                    <div
+                      key={story.id}
+                      className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                    >
+                      <div className="flex gap-4 items-start">
+                        {/* User Avatar */}
+                        <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-2 ring-slate-100">
+                          <img
+                            src={story.avatar}
+                            alt={story.name}
+                            className="size-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+
+                        {/* Quote & Info */}
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex items-center gap-1 text-blue-500">
+                            <Quote className="size-4 fill-current rotate-180 opacity-70" />
+                          </div>
+                          <p className="text-xs leading-relaxed text-slate-700 italic">
+                            "{story.quote}"
+                          </p>
+                          <div className="pt-1">
+                            <h4 className="text-xs font-bold text-[#112d4e]">
+                              {story.name}
+                            </h4>
+                            <p className="text-[11px] text-slate-500">
+                              {story.role}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* 7. ARTICLES & WRITE BLOG SECTION */}
+              <section className="space-y-4">
                 <div>
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700">
-                      <Globe className="size-3.5" />
-                      Google & Meta Ads
-                    </span>
-                  </div>
-
-                  <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
-                    Programmatic & Display Network
-                  </h3>
-                  <p className="mt-1.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
-                    Automated high-converting placements through Google AdSense and Meta Audience Network across all visitor devices.
+                  <h2 className="font-[var(--app-font-serif)] text-xl sm:text-2xl font-bold tracking-tight text-[#112d4e] whitespace-nowrap">
+                    Articles & Write Blog
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Insights, investor checklists, and startup advice from the community.
                   </p>
+                </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => inform('Google & Meta ad slot integration: partner@ideabridge.io')}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[#1877f2] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1264ce]"
+                {/* Articles Grid */}
+                <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+                  {articles.map((art) => (
+                    <article
+                      key={art.id}
+                      onClick={() => setSelectedArticle(art)}
+                      className="group flex cursor-pointer items-start gap-4 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
                     >
-                      <Sparkles className="size-3.5" />
-                      <span>Reserve Ad Space</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => inform('Programmatic Ad policies: family-friendly student verified.')}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
-                    >
-                      <span>Ad Guidelines</span>
-                    </button>
+                      {/* Thumbnail */}
+                      <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                        <img
+                          src={art.imageUrl}
+                          alt={art.title}
+                          className="size-full object-cover transition duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      </div>
+
+                      {/* Text Content */}
+                      <div className="min-w-0 flex-1 flex flex-col justify-between h-20">
+                        <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold leading-snug text-[#112d4e] group-hover:text-blue-600 transition">
+                          {art.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Clock3 className="size-3" />
+                            {art.date}
+                          </span>
+                          <span>·</span>
+                          <span>{art.readTime}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                {/* View More at bottom of the section */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => inform('Viewing all community startup articles.')}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
+                  >
+                    <span>View More</span>
+                    <ArrowRight className="size-3.5" />
+                  </button>
+                </div>
+              </section>
+
+              {/* 8. ADVERTISEMENT SECTION (DIVIDED INTO 2 EQUAL PARTS) */}
+              <section id="advertisement" className="space-y-4">
+                <div className="grid gap-5 md:grid-cols-2">
+                  {/* Part 1: Meta & Google Ads */}
+                  <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-br from-[#f8fbff] via-white to-[#f0f7ff] p-5 sm:p-7 text-center transition hover:border-blue-300 shadow-2xs">
+                    <div>
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700">
+                          <Globe className="size-3.5" />
+                          Google & Meta Ads
+                        </span>
+                      </div>
+
+                      <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
+                        Programmatic & Display Network
+                      </h3>
+                      <p className="mt-1.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                        Automated high-converting placements through Google AdSense and Meta Audience Network across all visitor devices.
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => inform('Google & Meta ad slot integration: partner@ideabridge.io')}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#1877f2] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1264ce]"
+                        >
+                          <Sparkles className="size-3.5" />
+                          <span>Reserve Ad Space</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => inform('Programmatic Ad policies: family-friendly student verified.')}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
+                        >
+                          <span>Ad Guidelines</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Banner Placeholder */}
+                    <div className="mt-6 rounded-xl border border-slate-200/70 bg-slate-50/60 py-3.5 px-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-400 text-xs">
+                      <span className="text-[11px] font-medium tracking-wide">
+                        Google / Meta Slot (Responsive Display)
+                      </span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-blue-600 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100">
+                        Network Ready
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Part 2: Local Ads */}
+                  <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-br from-[#f8fdfa] via-white to-[#f0fbf4] p-5 sm:p-7 text-center transition hover:border-emerald-300 shadow-2xs">
+                    <div>
+                      <div className="flex items-center justify-center gap-2 mb-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                          <MapPin className="size-3.5" />
+                          Local & Regional Ads
+                        </span>
+                      </div>
+
+                      <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
+                        Local & Campus Sponsorships
+                      </h3>
+                      <p className="mt-1.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                        Direct custom sponsor showcases for local startups, regional incubators, university hackathons, and local businesses.
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => inform('Local ad booking inquiries: local-ads@ideabridge.io')}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700"
+                        >
+                          <Megaphone className="size-3.5" />
+                          <span>Post Local Ad</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => inform('Local reach: 120+ verified university communities.')}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
+                        >
+                          <span>Local Reach</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Banner Placeholder */}
+                    <div className="mt-6 rounded-xl border border-slate-200/70 bg-slate-50/60 py-3.5 px-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-400 text-xs">
+                      <span className="text-[11px] font-medium tracking-wide">
+                        Local Direct Sponsor Banner (300×250 / Native Card)
+                      </span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-100">
+                        Local Slot Ready
+                      </span>
+                    </div>
                   </div>
                 </div>
+              </section>
 
-                {/* Banner Placeholder */}
-                <div className="mt-6 rounded-xl border border-slate-200/70 bg-slate-50/60 py-3.5 px-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-400 text-xs">
-                  <span className="text-[11px] font-medium tracking-wide">
-                    Google / Meta Slot (Responsive Display)
-                  </span>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-blue-600 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100">
-                    Network Ready
-                  </span>
-                </div>
-              </div>
-
-              {/* Part 2: Local Ads */}
-              <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-br from-[#f8fdfa] via-white to-[#f0fbf4] p-5 sm:p-7 text-center transition hover:border-emerald-300 shadow-2xs">
-                <div>
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
-                      <MapPin className="size-3.5" />
-                      Local & Regional Ads
-                    </span>
-                  </div>
-
-                  <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
-                    Local & Campus Sponsorships
-                  </h3>
-                  <p className="mt-1.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
-                    Direct custom sponsor showcases for local startups, regional incubators, university hackathons, and local businesses.
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => inform('Local ad booking inquiries: local-ads@ideabridge.io')}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700"
-                    >
-                      <Megaphone className="size-3.5" />
-                      <span>Post Local Ad</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => inform('Local reach: 120+ verified university communities.')}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
-                    >
-                      <span>Local Reach</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Banner Placeholder */}
-                <div className="mt-6 rounded-xl border border-slate-200/70 bg-slate-50/60 py-3.5 px-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-400 text-xs">
-                  <span className="text-[11px] font-medium tracking-wide">
-                    Local Direct Sponsor Banner (300×250 / Native Card)
-                  </span>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-100">
-                    Local Slot Ready
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-        
             </>
           )}
-</main>
+        </main>
       </div>
 
       {/* 8. DARK FOOTER MATCHING EXACT REFERENCE IMAGE */}
@@ -2108,8 +2099,8 @@ function renderWorkspaceView({
                 setMobileNav(false);
               }}
               className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition ${page === item.key
-                  ? 'bg-[#eaf2fa] text-[#1c578a]'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-[#243c57]'
+                ? 'bg-[#eaf2fa] text-[#1c578a]'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-[#243c57]'
                 }`}
             >
               <item.icon
@@ -2594,7 +2585,7 @@ function VentureDetails({
         </div>
       )}
 
-{/* Signal Interest & Investor Interest List */}
+      {/* Signal Interest & Investor Interest List */}
       <div className="mt-5 rounded-2xl border border-blue-100 bg-[#f8fafc] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
           <div>
@@ -2606,9 +2597,8 @@ function VentureDetails({
             </div>
             <p className="mt-1 text-[11px] text-slate-500">
               {venture.interests.length
-                ? `${venture.interests.length} ${
-                    venture.interests.length === 1 ? 'investor / fund' : 'investors / funds'
-                  } expressing interest in this venture`
+                ? `${venture.interests.length} ${venture.interests.length === 1 ? 'investor / fund' : 'investors / funds'
+                } expressing interest in this venture`
                 : 'Be the first investor to signal interest.'}
             </p>
           </div>
@@ -2616,11 +2606,10 @@ function VentureDetails({
           <button
             type="button"
             onClick={onInterest}
-            className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-xs font-bold transition shadow-sm ${
-              interested
+            className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-xs font-bold transition shadow-sm ${interested
                 ? 'border border-blue-300 bg-white text-blue-700 hover:bg-blue-50'
                 : 'bg-[#1877f2] text-white hover:bg-[#1264ce]'
-            }`}
+              }`}
           >
             <Bookmark className={`size-3.5 ${interested ? 'fill-current' : ''}`} />
             {interested ? 'Withdraw interest' : 'Signal interest'}
