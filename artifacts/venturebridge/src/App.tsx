@@ -787,7 +787,7 @@ export default function App() {
 
           {/* 3. CATEGORY TABS (Retail, Manufacturing, Service) */}
           <div className="border-t border-slate-100 bg-white px-3 sm:px-4">
-            <div className="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto no-scrollbar justify-start sm:justify-center px-1">
+            <div className="mx-auto flex max-w-7xl items-center gap-6 overflow-x-auto no-scrollbar justify-center px-1">
               {CATEGORIES.map(({ id, label, icon: Icon }) => {
                 const active = selectedCategory === id;
                 return (
