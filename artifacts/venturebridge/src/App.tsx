@@ -3,7 +3,7 @@ import {
   ArrowRight, ArrowUpRight, BadgeCheck, Bell, Bookmark, BookOpen, BriefcaseBusiness,
   Building2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock3, Cog, Compass,
   ExternalLink, Factory, FilePlus2, FileText, Filter, GraduationCap, HandCoins,
-  IndianRupee, Instagram, LayoutDashboard, Linkedin, LogOut, Menu, MessageSquareText, PenSquare, Plus, Quote, Search,
+  IndianRupee, Instagram, LayoutDashboard, Linkedin, LogOut, Megaphone, Menu, MessageSquareText, PenSquare, Plus, Quote, Search,
   ShieldCheck, ShoppingBag, SlidersHorizontal, Sparkles, Twitter, User, Users, Wallet, X, XCircle, Youtube,
 } from 'lucide-react';
 import { createVenture, loadDemoData, resetDemoData, saveDemoData } from './storage';
@@ -1407,6 +1407,58 @@ export default function App() {
                   </div>
                 </article>
               ))}
+            </div>
+          </section>
+
+          {/* 8. ADVERTISEMENT SECTION (BELOW ARTICLES & ABOVE FOOTER) */}
+          <section id="advertisement" className="space-y-4">
+            <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-r from-[#f8fbff] via-white to-[#f5f9ff] p-6 sm:p-8 text-center transition hover:border-blue-300 shadow-2xs">
+              {/* Badge */}
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700">
+                  <Megaphone className="size-3.5" />
+                  Advertisement Space
+                </span>
+              </div>
+
+              {/* Title & Description */}
+              <div className="mx-auto max-w-2xl space-y-1.5">
+                <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
+                  Partner & Sponsor Showcase
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-lg mx-auto">
+                  Promote your startup, accelerator program, venture syndicate, or campus event to thousands of active student founders and investors.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => inform('Ad space inquiry: partner@ideabridge.io')}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#1877f2] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#1264ce]"
+                >
+                  <Sparkles className="size-3.5" />
+                  <span>Reserve Ad Space</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => inform('Media kit & reach analytics will be available soon.')}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
+                >
+                  <span>View Media Kit</span>
+                </button>
+              </div>
+
+              {/* Visual Placeholder for Future Ad Banner / Google AdSense */}
+              <div className="mt-6 mx-auto max-w-3xl rounded-xl border border-slate-200/60 bg-slate-50/50 py-4 px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-400 text-xs">
+                <span className="text-[11px] font-medium tracking-wide">
+                  Responsive Banner Ad Placement (728×90 Desktop / 320×100 Mobile)
+                </span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  Ad Space Ready
+                </span>
+              </div>
             </div>
           </section>
         
