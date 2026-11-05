@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ArrowRight, ArrowUpRight, BadgeCheck, Bell, Bookmark, BookOpen, BriefcaseBusiness,
   Building2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock3, Cog, Compass,
-  ExternalLink, Factory, FilePlus2, FileText, Filter, GraduationCap, HandCoins,
-  IndianRupee, Instagram, LayoutDashboard, Linkedin, LogOut, Megaphone, Menu, MessageSquareText, PenSquare, Plus, Quote, Search,
+  ExternalLink, Factory, FilePlus2, FileText, Filter, Globe, GraduationCap, HandCoins,
+  IndianRupee, Instagram, LayoutDashboard, Linkedin, LogOut, MapPin, Megaphone, Menu, MessageSquareText, PenSquare, Plus, Quote, Search,
   ShieldCheck, ShoppingBag, SlidersHorizontal, Sparkles, Twitter, User, Users, Wallet, X, XCircle, Youtube,
 } from 'lucide-react';
 import { createVenture, loadDemoData, resetDemoData, saveDemoData } from './storage';
@@ -743,15 +743,87 @@ export default function App() {
             </div>
           </div>
 
-          {/* 2. PRICE RANGE ROW - Horizontal scrollable on mobile */}
-          <div className="border-t border-slate-100 bg-[#fbfcfd] px-3 sm:px-4 py-2">
-            <div className="mx-auto flex max-w-7xl items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth px-1 sm:justify-center sm:flex-wrap">
+          {/* 2. PRICE RANGE ROW - Continuous Marquee on Mobile, Static Centered on Desktop */}
+          <div className="relative border-t border-slate-100 bg-[#fbfcfd] py-2 overflow-hidden">
+            {/* Subtle edge fade masks on mobile */}
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-[#fbfcfd] to-transparent z-10 sm:hidden" />
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#fbfcfd] to-transparent z-10 sm:hidden" />
+
+            {/* Continuous Marquee on Mobile (< sm) */}
+            <div className="flex sm:hidden overflow-hidden no-scrollbar w-full">
+              <div className="animate-marquee-continuous flex items-center gap-2 px-1">
+                {/* Track 1 */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {PRICE_RANGES.slice().reverse().map((range) => {
+                    const active = selectedRange === range.id;
+                    const count = rangeGroups[range.id]?.length || 0;
+                    return (
+                      <button
+                        key={`m1-${range.id}`}
+                        type="button"
+                        onClick={() => setSelectedRange(active ? null : range.id)}
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
+                          active
+                            ? 'bg-[#1877f2] text-white shadow-sm ring-2 ring-blue-300/40'
+                            : 'border border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>₹ {range.label}</span>
+                        {count > 0 && (
+                          <span
+                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                              active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                            }`}
+                          >
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Track 2 (Duplicate for continuous loop) */}
+                <div className="flex items-center gap-2 shrink-0" aria-hidden="true">
+                  {PRICE_RANGES.slice().reverse().map((range) => {
+                    const active = selectedRange === range.id;
+                    const count = rangeGroups[range.id]?.length || 0;
+                    return (
+                      <button
+                        key={`m2-${range.id}`}
+                        type="button"
+                        onClick={() => setSelectedRange(active ? null : range.id)}
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
+                          active
+                            ? 'bg-[#1877f2] text-white shadow-sm ring-2 ring-blue-300/40'
+                            : 'border border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>₹ {range.label}</span>
+                        {count > 0 && (
+                          <span
+                            className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                              active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                            }`}
+                          >
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop View (sm+): Centered and wrapped */}
+            <div className="hidden sm:flex mx-auto max-w-7xl items-center justify-center gap-2 px-4 flex-wrap">
               {PRICE_RANGES.slice().reverse().map((range) => {
                 const active = selectedRange === range.id;
                 const count = rangeGroups[range.id]?.length || 0;
                 return (
                   <button
-                    key={range.id}
+                    key={`d-${range.id}`}
                     type="button"
                     onClick={() => setSelectedRange(active ? null : range.id)}
                     className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition ${
@@ -1342,35 +1414,14 @@ export default function App() {
           </section>
 
           {/* 7. ARTICLES & WRITE BLOG SECTION */}
-          <section className="space-y-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-[var(--app-font-serif)] text-2xl font-bold tracking-tight text-[#112d4e]">
-                  Articles & Write Blog
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Insights, investor checklists, and startup advice from the community.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setWriteBlogModal(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3.5 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
-                >
-                  <PenSquare className="size-3.5" />
-                  <span>Write Blog</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => inform('Viewing all community startup articles.')}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
-                >
-                  <span>View More</span>
-                  <ArrowRight className="size-3.5" />
-                </button>
-              </div>
+          <section className="space-y-4">
+            <div>
+              <h2 className="font-[var(--app-font-serif)] text-xl sm:text-2xl font-bold tracking-tight text-[#112d4e] whitespace-nowrap">
+                Articles & Write Blog
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Insights, investor checklists, and startup advice from the community.
+              </p>
             </div>
 
             {/* Articles Grid */}
@@ -1408,56 +1459,115 @@ export default function App() {
                 </article>
               ))}
             </div>
+
+            {/* View More at bottom of the section */}
+            <div className="flex justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => inform('Viewing all community startup articles.')}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#1877f2] hover:underline"
+              >
+                <span>View More</span>
+                <ArrowRight className="size-3.5" />
+              </button>
+            </div>
           </section>
 
-          {/* 8. ADVERTISEMENT SECTION (BELOW ARTICLES & ABOVE FOOTER) */}
+          {/* 8. ADVERTISEMENT SECTION (DIVIDED INTO 2 EQUAL PARTS) */}
           <section id="advertisement" className="space-y-4">
-            <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-r from-[#f8fbff] via-white to-[#f5f9ff] p-6 sm:p-8 text-center transition hover:border-blue-300 shadow-2xs">
-              {/* Badge */}
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700">
-                  <Megaphone className="size-3.5" />
-                  Advertisement Space
-                </span>
+            <div className="grid gap-5 md:grid-cols-2">
+              {/* Part 1: Meta & Google Ads */}
+              <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-br from-[#f8fbff] via-white to-[#f0f7ff] p-5 sm:p-7 text-center transition hover:border-blue-300 shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/80 bg-blue-50/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700">
+                      <Globe className="size-3.5" />
+                      Google & Meta Ads
+                    </span>
+                  </div>
+
+                  <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
+                    Programmatic & Display Network
+                  </h3>
+                  <p className="mt-1.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                    Automated high-converting placements through Google AdSense and Meta Audience Network across all visitor devices.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => inform('Google & Meta ad slot integration: partner@ideabridge.io')}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#1877f2] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1264ce]"
+                    >
+                      <Sparkles className="size-3.5" />
+                      <span>Reserve Ad Space</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => inform('Programmatic Ad policies: family-friendly student verified.')}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
+                    >
+                      <span>Ad Guidelines</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Banner Placeholder */}
+                <div className="mt-6 rounded-xl border border-slate-200/70 bg-slate-50/60 py-3.5 px-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-400 text-xs">
+                  <span className="text-[11px] font-medium tracking-wide">
+                    Google / Meta Slot (Responsive Display)
+                  </span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-blue-600 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100">
+                    Network Ready
+                  </span>
+                </div>
               </div>
 
-              {/* Title & Description */}
-              <div className="mx-auto max-w-2xl space-y-1.5">
-                <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
-                  Partner & Sponsor Showcase
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-lg mx-auto">
-                  Promote your startup, accelerator program, venture syndicate, or campus event to thousands of active student founders and investors.
-                </p>
-              </div>
+              {/* Part 2: Local Ads */}
+              <div className="relative flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-dashed border-slate-200/90 bg-gradient-to-br from-[#f8fdfa] via-white to-[#f0fbf4] p-5 sm:p-7 text-center transition hover:border-emerald-300 shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                      <MapPin className="size-3.5" />
+                      Local & Regional Ads
+                    </span>
+                  </div>
 
-              {/* Action Buttons */}
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => inform('Ad space inquiry: partner@ideabridge.io')}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#1877f2] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#1264ce]"
-                >
-                  <Sparkles className="size-3.5" />
-                  <span>Reserve Ad Space</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => inform('Media kit & reach analytics will be available soon.')}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
-                >
-                  <span>View Media Kit</span>
-                </button>
-              </div>
+                  <h3 className="font-[var(--app-font-serif)] text-lg sm:text-xl font-bold tracking-tight text-[#112d4e]">
+                    Local & Campus Sponsorships
+                  </h3>
+                  <p className="mt-1.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                    Direct custom sponsor showcases for local startups, regional incubators, university hackathons, and local businesses.
+                  </p>
 
-              {/* Visual Placeholder for Future Ad Banner / Google AdSense */}
-              <div className="mt-6 mx-auto max-w-3xl rounded-xl border border-slate-200/60 bg-slate-50/50 py-4 px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-400 text-xs">
-                <span className="text-[11px] font-medium tracking-wide">
-                  Responsive Banner Ad Placement (728×90 Desktop / 320×100 Mobile)
-                </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                  Ad Space Ready
-                </span>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => inform('Local ad booking inquiries: local-ads@ideabridge.io')}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700"
+                    >
+                      <Megaphone className="size-3.5" />
+                      <span>Post Local Ad</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => inform('Local reach: 120+ verified university communities.')}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800"
+                    >
+                      <span>Local Reach</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Banner Placeholder */}
+                <div className="mt-6 rounded-xl border border-slate-200/70 bg-slate-50/60 py-3.5 px-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-400 text-xs">
+                  <span className="text-[11px] font-medium tracking-wide">
+                    Local Direct Sponsor Banner (300×250 / Native Card)
+                  </span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-600 bg-emerald-50/80 px-2 py-0.5 rounded border border-emerald-100">
+                    Local Slot Ready
+                  </span>
+                </div>
               </div>
             </div>
           </section>
