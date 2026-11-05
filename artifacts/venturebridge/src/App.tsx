@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ArrowRight, ArrowUpRight, BadgeCheck, Bell, Bookmark, BookOpen, BriefcaseBusiness,
   Building2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock3, Cog, Compass,
@@ -8,8 +8,16 @@ import {
 } from 'lucide-react';
 import { createVenture, loadDemoData, resetDemoData, saveDemoData } from './storage';
 import type { DemoData, Role, Venture, VentureStatus } from './types';
+import CreatorAuthPage from './pages/CreatorAuthPage';
+import {
+  clearCurrentSession,
+  getCurrentSession,
+  saveCurrentSession,
+  type UserRole,
+} from './auth';
+import InvestorAuthPage from './pages/InvestorAuthPage';
 
-type Page = 'front' | 'overview' | 'applications' | 'submit' | 'review' | 'discover';
+type Page = 'front' | 'overview' | 'applications' | 'submit' | 'review' | 'discover' | 'creator-auth' | 'investor-auth';
 
 const roleTitles: Record<Role, string> = {
   student: 'Student founder',
@@ -322,12 +330,24 @@ function getSearchRelevance(v: Venture, query: string): number {
 
 export default function App() {
   const [data, setData] = useState<DemoData>(() => loadDemoData());
+  // User starts unauthenticated on fresh load / refresh so site asks to login again
   const [role, setRole] = useState<Role | null>(null);
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState<string>('');
   const [page, setPage] = useState<Page>('front');
   const [mobileNav, setMobileNav] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [submitModal, setSubmitModal] = useState(false);
+  const [creatorMeta, setCreatorMeta] = useState<{
+    email?: string;
+    university?: string;
+    projectName?: string;
+    category?: string;
+  }>({});
+
+  // Ensure clean logged-out state on site reload so login is required every visit
+  useEffect(() => {
+    clearCurrentSession();
+  }, []);
 
   // Success Stories & Articles states
   const [storyTag, setStoryTag] = useState<'All' | 'Founders' | 'Investors' | 'Mentors'>('All');
@@ -354,6 +374,32 @@ export default function App() {
   };
 
   const enterWorkspace = (nextRole: Role, name: string) => {
+    // Check session authorization
+    const session = getCurrentSession();
+    if (!session || session.user.role !== nextRole) {
+      if (nextRole === 'admin') {
+        saveCurrentSession({
+          user: {
+            id: 'user-admin',
+            name: name,
+            email: 'admin@ideabridge.io',
+            password: 'admin123',
+            role: 'admin',
+            createdAt: '2025-01-01',
+          },
+          token: 'token-admin',
+          signedInAt: new Date().toISOString(),
+        });
+      } else if (nextRole === 'investor') {
+        setPage('investor-auth');
+        inform('Please log in with an accredited investor account first.');
+        return;
+      } else if (nextRole === 'student') {
+        setPage('creator-auth');
+        inform('Please log in with a student founder account first.');
+        return;
+      }
+    }
     setRole(nextRole);
     setDisplayName(name);
     setPage('overview');
@@ -362,10 +408,13 @@ export default function App() {
   };
 
   const signOut = () => {
+    clearCurrentSession();
     setRole(null);
     setDisplayName('');
+    setCreatorMeta({});
     setPage('front');
     setSelectedVenture(null);
+    inform('You have signed out successfully.');
   };
 
   const changeVenture = (id: string, patch: Partial<Venture>) => {
@@ -387,11 +436,17 @@ export default function App() {
   };
 
   const addApplication = (form: HTMLFormElement) => {
+    if (!role || role !== 'student') {
+      inform('Authorization required: Please log in as a student founder to list a project.');
+      setSubmitModal(false);
+      setPage('creator-auth');
+      return;
+    }
     const values = new FormData(form);
     const item = createVenture({
-      founder: String(values.get('founder')),
-      university: String(values.get('university')),
-      email: String(values.get('email')),
+      founder: String(values.get('founder') || displayName),
+      university: String(values.get('university') || creatorMeta.university || 'Campus Innovator'),
+      email: String(values.get('email') || creatorMeta.email || 'founder@college.edu'),
       name: String(values.get('name')),
       tagline: String(values.get('tagline')),
       category: String(values.get('category')),
@@ -422,6 +477,11 @@ export default function App() {
   };
 
   const toggleInterest = (venture: Venture) => {
+    if (!role || role !== 'investor') {
+      inform('Only registered investors can signal interest. Please sign in as an investor.');
+      setPage('investor-auth');
+      return;
+    }
     const userIdentifier = displayName || 'Interested Investor';
     const interested = venture.interests.includes(userIdentifier);
     changeVenture(venture.id, {
@@ -429,7 +489,7 @@ export default function App() {
         ? venture.interests.filter((name) => name !== userIdentifier)
         : [...venture.interests, userIdentifier],
     });
-    inform(interested ? 'Interest withdrawn.' : 'Your interest has been signaled to the founder!');
+    inform(interested ? 'Interest withdrawn.' : 'Your investment interest has been signaled to the founder!');
   };
 
     // Computed search results ranked by relevance
@@ -504,6 +564,42 @@ export default function App() {
     [data.ventures],
   );
 
+    // Dedicated Creator Auth (Login / Signup for Project Creators)
+  if (page === 'creator-auth') {
+    return (
+      <CreatorAuthPage
+        onSuccess={(data) => {
+          setRole('student');
+          setDisplayName(data.name);
+          setCreatorMeta({
+            email: data.email,
+            university: data.university,
+            projectName: data.projectName,
+            category: data.category,
+          });
+          setPage('front');
+          setSubmitModal(true);
+          inform(`Welcome, ${data.name}! Your founder account is active. You can now list your project.`);
+        }}
+        onBack={() => setPage('front')}
+        onSwitchToInvestor={() => setPage('investor-auth')}
+      />
+    );
+  }
+
+  // Dedicated Investor Auth (Login / Signup for Investors & Angels)
+  if (page === 'investor-auth') {
+    return (
+      <InvestorAuthPage
+        onSuccess={(data) => {
+          enterWorkspace('investor', data.firmName || data.name);
+        }}
+        onBack={() => setPage('front')}
+        onSwitchToCreator={() => setPage('creator-auth')}
+      />
+    );
+  }
+
   // If in workspace mode (role is set and page !== 'front')
   if (role && page !== 'front') {
     return renderWorkspaceView({
@@ -565,10 +661,47 @@ export default function App() {
 
               {/* Right Action Buttons */}
               <div className="flex items-center gap-1.5 sm:gap-2">
+                {role ? (
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPage('overview')}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-blue-800 transition hover:bg-blue-100"
+                      title="Open workspace"
+                    >
+                      <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="max-w-[70px] sm:max-w-none truncate">{displayName}</span>
+                      <span className="hidden sm:inline text-[10px] font-normal text-blue-600">({roleTitles[role]})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={signOut}
+                      className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setPage('investor-auth')}
+                    className="hidden md:inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-blue-700"
+                  >
+                    <BriefcaseBusiness className="size-3.5 text-slate-500" />
+                    <span>Investor Login</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
-                  onClick={() => setSubmitModal(true)}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-blue-50 px-3 text-xs font-bold text-blue-700 transition hover:bg-blue-100"
+                  onClick={() => {
+                    if (role === 'student') {
+                      setSubmitModal(true);
+                    } else {
+                      setPage('creator-auth');
+                    }
+                  }}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#1877f2] px-3 sm:px-3.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1264ce]"
                 >
                   <Plus className="size-3.5" />
                   <span className="hidden sm:inline">List Project</span>
@@ -755,7 +888,11 @@ export default function App() {
                     type="button"
                     onClick={() => {
                       setMenuOpen(false);
-                      setSubmitModal(true);
+                      if (role === 'student') {
+                        setSubmitModal(true);
+                      } else {
+                        setPage('creator-auth');
+                      }
                     }}
                     className="flex w-full items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow transition hover:bg-blue-700"
                   >
@@ -901,7 +1038,13 @@ export default function App() {
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => setSubmitModal(true)}
+                    onClick={() => {
+                      if (role === 'student') {
+                        setSubmitModal(true);
+                      } else {
+                        setPage('creator-auth');
+                      }
+                    }}
                     className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#1877f2] px-6 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#1264ce] focus:outline-none focus:ring-4 focus:ring-blue-200"
                   >
                     <span>List Your Project</span>
@@ -909,7 +1052,13 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => enterWorkspace('investor', 'Northstar Ventures')}
+                    onClick={() => {
+                      if (role === 'investor') {
+                        enterWorkspace('investor', displayName || 'Northstar Ventures');
+                      } else {
+                        setPage('investor-auth');
+                      }
+                    }}
                     className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-300/80 bg-white/90 px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white hover:text-blue-700"
                   >
                     <span>Explore Investors</span>
@@ -1299,7 +1448,13 @@ export default function App() {
               </button>
               <button
                 type="button"
-                onClick={() => enterWorkspace('investor', 'Northstar Ventures')}
+                onClick={() => {
+                  if (role === 'investor') {
+                    enterWorkspace('investor', displayName || 'Northstar Ventures');
+                  } else {
+                    setPage('investor-auth');
+                  }
+                }}
                 className="hover:text-white transition"
               >
                 For Investors
@@ -1430,6 +1585,10 @@ export default function App() {
         >
           <ApplicationForm
             name={displayName || 'Student Founder'}
+            defaultEmail={creatorMeta.email}
+            defaultUniversity={creatorMeta.university}
+            defaultProjectName={creatorMeta.projectName}
+            defaultCategory={creatorMeta.category}
             onSubmit={addApplication}
             onCancel={() => setSubmitModal(false)}
           />
@@ -1887,13 +2046,26 @@ function renderWorkspaceView({
                     <div
                       key={v.id}
                       onClick={() => setSelectedVenture(v)}
-                      className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-100 p-3 hover:bg-slate-50"
+                      className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-100 p-3 hover:bg-slate-50 transition"
                     >
                       <div>
-                        <p className="font-bold text-slate-800 text-sm">{v.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-slate-800 text-sm">{v.name}</p>
+                          {v.interests.length > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200/60">
+                              <Bookmark className="size-2.5 fill-current" />
+                              <span>{v.interests.length} {v.interests.length === 1 ? 'Investor' : 'Investors'} Interested</span>
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-500">
                           {v.founder} · {v.university} · {v.category}
                         </p>
+                        {v.interests.length > 0 && (
+                          <p className="text-[11px] text-blue-600 font-medium mt-0.5">
+                            Interested: <span className="font-semibold text-slate-700">{v.interests.join(', ')}</span>
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-bold text-blue-700">
@@ -1940,16 +2112,27 @@ function renderWorkspaceView({
                   <div
                     key={v.id}
                     onClick={() => setSelectedVenture(v)}
-                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-300 flex items-center justify-between"
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-300 flex items-center justify-between transition"
                   >
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-base font-bold text-slate-800">{v.name}</h3>
                         <StatusBadge status={v.status} />
+                        {v.interests.length > 0 && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 border border-blue-200/60">
+                            <Bookmark className="size-3 fill-current" />
+                            <span>{v.interests.length} {v.interests.length === 1 ? 'Investor' : 'Investors'} Interested</span>
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
                         {v.founder} · {v.university} · ₹ {v.requestedAmount} Lakhs
                       </p>
+                      {v.interests.length > 0 && (
+                        <p className="text-xs text-blue-600 font-medium mt-1.5">
+                          Interested investors: <span className="font-semibold text-slate-700">{v.interests.join(', ')}</span>
+                        </p>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -2068,10 +2251,18 @@ function Field({
 
 function ApplicationForm({
   name,
+  defaultEmail,
+  defaultUniversity,
+  defaultProjectName,
+  defaultCategory = 'Retail',
   onSubmit,
   onCancel,
 }: {
   name: string;
+  defaultEmail?: string;
+  defaultUniversity?: string;
+  defaultProjectName?: string;
+  defaultCategory?: string;
   onSubmit: (form: HTMLFormElement) => void;
   onCancel: () => void;
 }) {
@@ -2089,14 +2280,15 @@ function ApplicationForm({
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Founder name" name="founder" defaultValue={name} />
-          <Field label="University / College" name="university" placeholder="IIT / BITS / DU etc." />
+          <Field label="University / College" name="university" defaultValue={defaultUniversity} placeholder="IIT / BITS / DU etc." />
           <Field
             label="Contact email"
             name="email"
             type="email"
+            defaultValue={defaultEmail}
             placeholder="founder@college.edu"
           />
-          <Field label="Venture / Project name" name="name" placeholder="Idea / Startup name" />
+          <Field label="Venture / Project name" name="name" defaultValue={defaultProjectName} placeholder="Idea / Startup name" />
           <Field
             label="One-line tagline"
             name="tagline"
@@ -2107,7 +2299,7 @@ function ApplicationForm({
             <select
               required
               name="category"
-              defaultValue="Retail"
+              defaultValue={defaultCategory || "Retail"}
               className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-[#76a0c6]"
             >
               <option value="Retail">Retail</option>
@@ -2198,14 +2390,14 @@ function VentureDetails({
   onInterest,
 }: {
   venture: Venture;
-  role: Role;
+  role: Role | null;
   displayName: string;
   onDecision: (status: VentureStatus, feedback: string, budget: number) => void;
   onInterest: () => void;
 }) {
   const [feedback, setFeedback] = useState(venture.feedback || '');
   const [budget, setBudget] = useState(String(venture.approvedBudget ?? venture.requestedAmount));
-  const interested = venture.interests.includes(displayName);
+  const interested = Boolean(displayName && venture.interests.includes(displayName));
   const isAdmin = role === 'admin';
 
   return (
@@ -2240,28 +2432,75 @@ function VentureDetails({
         </div>
       )}
 
-      {/* Signal Interest */}
-      <div className="mt-5 flex items-center justify-between rounded-xl border border-blue-100 bg-[#f5f9fc] px-4 py-3">
-        <div>
-          <p className="text-xs font-bold text-[#2b425a]">Investor Interest</p>
-          <p className="mt-1 text-[11px] text-slate-500">
-            {venture.interests.length
-              ? `${venture.interests.length} interested ${venture.interests.length === 1 ? 'party' : 'parties'
-              }`
-              : 'Be the first investor to signal interest.'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onInterest}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition ${interested
-              ? 'border border-blue-300 bg-white text-blue-700'
-              : 'bg-[#1877f2] text-white hover:bg-[#1264ce]'
+{/* Signal Interest & Investor Interest List */}
+      <div className="mt-5 rounded-2xl border border-blue-100 bg-[#f8fafc] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                <Bookmark className="size-4 fill-current" />
+              </div>
+              <p className="text-xs font-bold text-[#1f3853]">Investor Interest</p>
+            </div>
+            <p className="mt-1 text-[11px] text-slate-500">
+              {venture.interests.length
+                ? `${venture.interests.length} ${
+                    venture.interests.length === 1 ? 'investor / fund' : 'investors / funds'
+                  } expressing interest in this venture`
+                : 'Be the first investor to signal interest.'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onInterest}
+            className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3.5 text-xs font-bold transition shadow-sm ${
+              interested
+                ? 'border border-blue-300 bg-white text-blue-700 hover:bg-blue-50'
+                : 'bg-[#1877f2] text-white hover:bg-[#1264ce]'
             }`}
-        >
-          <Bookmark className={`size-3.5 ${interested ? 'fill-current' : ''}`} />
-          {interested ? 'Withdraw interest' : 'Signal interest'}
-        </button>
+          >
+            <Bookmark className={`size-3.5 ${interested ? 'fill-current' : ''}`} />
+            {interested ? 'Withdraw interest' : 'Signal interest'}
+          </button>
+        </div>
+
+        {/* Detailed List of Interested Investors */}
+        <div className="mt-3.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+            Interested Investors & Capital Partners ({venture.interests.length}):
+          </p>
+          {venture.interests.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {venture.interests.map((investorName) => {
+                const isYou = Boolean(displayName && investorName === displayName);
+                return (
+                  <div
+                    key={investorName}
+                    className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm"
+                  >
+                    <div className="flex size-6 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <Building2 className="size-3.5" />
+                    </div>
+                    <span>{investorName}</span>
+                    {isYou && (
+                      <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-700">
+                        You
+                      </span>
+                    )}
+                    <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
+                      Interested
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 italic">
+              No registered investors or angels have signaled interest in this project yet.
+            </p>
+          )}
+        </div>
       </div>
 
       {isAdmin && (
