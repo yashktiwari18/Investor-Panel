@@ -5,6 +5,7 @@ import {
   ExternalLink, Factory, FilePlus2, FileText, Filter, GraduationCap, HandCoins,
   IndianRupee, Instagram, LayoutDashboard, Linkedin, LogOut, Menu, MessageSquareText, PenSquare, Plus, Quote, Search,
   ShieldCheck, ShoppingBag, SlidersHorizontal, Sparkles, Twitter, User, Users, Wallet, X, XCircle, Youtube,
+  Coins, Phone, Rocket,
 } from 'lucide-react';
 import { createVenture, loadDemoData, resetDemoData, saveDemoData } from './storage';
 import type { DemoData, Role, Venture, VentureStatus } from './types';
@@ -20,7 +21,7 @@ import InvestorAuthPage from './pages/InvestorAuthPage';
 type Page = 'front' | 'overview' | 'applications' | 'submit' | 'review' | 'discover' | 'creator-auth' | 'investor-auth';
 
 const roleTitles: Record<Role, string> = {
-  student: 'Student founder',
+  student: 'Creator',
   admin: 'Program administrator',
   investor: 'Investor',
 };
@@ -337,6 +338,7 @@ export default function App() {
   const [mobileNav, setMobileNav] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [submitModal, setSubmitModal] = useState(false);
+  const [raiseFundModal, setRaiseFundModal] = useState(false);
   const [creatorMeta, setCreatorMeta] = useState<{
     email?: string;
     university?: string;
@@ -396,7 +398,7 @@ export default function App() {
         return;
       } else if (nextRole === 'student') {
         setPage('creator-auth');
-        inform('Please log in with a student founder account first.');
+        inform('Please log in with a creator account first.');
         return;
       }
     }
@@ -435,9 +437,61 @@ export default function App() {
     }
   };
 
+  const addRaiseFundApplication = (form: HTMLFormElement) => {
+    const values = new FormData(form);
+    const founderName = String(values.get('founder') || displayName || 'Creator');
+    const founderEmail = String(values.get('email') || creatorMeta.email || 'creator@domain.com');
+    const universityName = String(values.get('university') || creatorMeta.university || 'Innovator');
+    const projectName = String(values.get('name') || 'Untitled Project');
+
+    const item = createVenture({
+      founder: founderName,
+      university: universityName,
+      email: founderEmail,
+      name: projectName,
+      tagline: String(values.get('tagline') || 'Innovative early-stage project'),
+      category: String(values.get('category') || 'Retail'),
+      description: String(values.get('description')),
+      businessModel: String(values.get('businessModel') || 'Sustainable impact model'),
+      useOfFunds: String(values.get('useOfFunds')),
+      requestedAmount: Number(values.get('requestedAmount')) || 10,
+    });
+
+    commit({ ...data, ventures: [item, ...data.ventures] });
+    setRaiseFundModal(false);
+
+    if (!role || role !== 'student') {
+      const session = {
+        user: {
+          id: `user-${Date.now().toString(36)}`,
+          name: founderName,
+          email: founderEmail,
+          password: 'Creator@123',
+          role: 'student' as const,
+          university: universityName,
+          projectName: projectName,
+          createdAt: new Date().toISOString().slice(0, 10),
+        },
+        token: `token-${Date.now()}`,
+        signedInAt: new Date().toISOString(),
+      };
+      saveCurrentSession(session);
+      setRole('student');
+      setDisplayName(founderName);
+      setCreatorMeta({
+        email: founderEmail,
+        university: universityName,
+        projectName: projectName,
+      });
+      inform(`🎉 Funding application for "${projectName}" submitted successfully! You are now logged in as Creator.`);
+    } else {
+      inform(`🎉 Funding application for "${projectName}" submitted to campus reviewers & angel investors!`);
+    }
+  };
+
   const addApplication = (form: HTMLFormElement) => {
     if (!role || role !== 'student') {
-      inform('Authorization required: Please log in as a student founder to list a project.');
+      inform('Authorization required: Please log in as a creator to list a project.');
       setSubmitModal(false);
       setPage('creator-auth');
       return;
@@ -849,7 +903,7 @@ export default function App() {
                       <GraduationCap className="size-4" />
                     </div>
                     <div>
-                      <span className="block text-xs font-bold text-slate-800">Student Founder</span>
+                      <span className="block text-xs font-bold text-slate-800">Creator Workspace</span>
                       <span className="block text-[11px] text-slate-500">Submit and track ideas</span>
                     </div>
                   </button>
@@ -1030,7 +1084,7 @@ export default function App() {
                   Turn Your Ideas Into Real-World Impact
                 </h1>
                 <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base">
-                  A platform where students and innovators showcase ideas, and investors discover
+                  A platform where creators and innovators showcase ideas, and investors discover
                   high-potential opportunities.
                 </p>
 
@@ -1062,6 +1116,14 @@ export default function App() {
                     className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-300/80 bg-white/90 px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white hover:text-blue-700"
                   >
                     <span>Explore Investors</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRaiseFundModal(true)}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border-2 border-emerald-500 bg-white px-5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50 hover:border-emerald-600 hover:text-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                  >
+                    <Coins className="size-4 text-emerald-600" />
+                    <span>Raise Fund</span>
                   </button>
                 </div>
               </div>
@@ -1095,7 +1157,7 @@ export default function App() {
                         Collaborative Student Innovation
                       </p>
                       <p className="text-xs text-slate-500 max-w-xs">
-                        Join 120+ student startups raising non-dilutive campus grants and angel investments.
+                        Join 120+ creator startups raising non-dilutive campus grants and angel investments.
                       </p>
                     </div>
 
@@ -1584,13 +1646,33 @@ export default function App() {
           wide
         >
           <ApplicationForm
-            name={displayName || 'Student Founder'}
+            name={displayName || 'Creator'}
             defaultEmail={creatorMeta.email}
             defaultUniversity={creatorMeta.university}
             defaultProjectName={creatorMeta.projectName}
             defaultCategory={creatorMeta.category}
             onSubmit={addApplication}
             onCancel={() => setSubmitModal(false)}
+          />
+        </Modal>
+      )}
+
+      {/* 2b. Raise Fund Modal */}
+      {raiseFundModal && (
+        <Modal
+          title="Raise Funds for Your Project / Idea"
+          subtitle="Submit full details of your concept, business model, and funding requirements to reach active angels & grant committees."
+          onClose={() => setRaiseFundModal(false)}
+          wide
+        >
+          <RaiseFundForm
+            name={displayName || 'Creator'}
+            defaultEmail={creatorMeta.email}
+            defaultUniversity={creatorMeta.university}
+            defaultProjectName={creatorMeta.projectName}
+            defaultCategory={creatorMeta.category}
+            onSubmit={addRaiseFundApplication}
+            onCancel={() => setRaiseFundModal(false)}
           />
         </Modal>
       )}
@@ -2249,6 +2331,215 @@ function Field({
   );
 }
 
+function RaiseFundForm({
+  name,
+  defaultEmail,
+  defaultUniversity,
+  defaultProjectName,
+  defaultCategory = 'Agritech',
+  onSubmit,
+  onCancel,
+}: {
+  name: string;
+  defaultEmail?: string;
+  defaultUniversity?: string;
+  defaultProjectName?: string;
+  defaultCategory?: string;
+  onSubmit: (form: HTMLFormElement) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(e.currentTarget);
+      }}
+      className="space-y-5"
+    >
+      {/* Top Banner */}
+      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+            <Coins className="size-5" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-emerald-950">
+              Apply for Non-Dilutive Campus Grants & Angel Investment
+            </h4>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-emerald-800">
+              Ideal for creators and innovators who have an idea but lack funds, or need capital to scale an ongoing project. Fill out the application below to connect with active angel syndicates and grant reviewers.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
+          1. Creator & Contact Information
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Creator / Founder Name" name="founder" defaultValue={name} placeholder="e.g. Maya Chen" />
+          <Field
+            label="Contact Email"
+            name="email"
+            type="email"
+            defaultValue={defaultEmail}
+            placeholder="e.g. creator@domain.com"
+          />
+          <Field
+            label="Phone / WhatsApp Contact"
+            name="contact"
+            type="tel"
+            placeholder="e.g. +91 98765 43210"
+          />
+          <Field
+            label="University / Institution / Organization"
+            name="university"
+            defaultValue={defaultUniversity}
+            placeholder="e.g. IIT Bombay, Delhi University, or Independent"
+            hint="Optional / Not mandatory"
+          />
+        </div>
+      </div>
+
+      <div className="border-t border-slate-100 pt-4">
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
+          2. Idea & Project Overview
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Idea / Project Name"
+            name="name"
+            defaultValue={defaultProjectName}
+            placeholder="e.g. EcoPack Biomaterials"
+          />
+          <Field
+            label="One tag-line (Optional)"
+            name="tagline"
+            required={false}
+            placeholder="e.g. 100% biodegradable agricultural packaging to replace single-use plastic (Optional)"
+          />
+          <label className="block text-xs font-semibold text-slate-600">
+            Sector Category<span className="ml-1 text-[#b75f59]">*</span>
+            <select
+              required
+              name="category"
+              defaultValue={defaultCategory || "Agritech"}
+              className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-[#76a0c6]"
+            >
+              <option value="Agritech">Agritech</option>
+              <option value="Clean Energy">Clean Energy</option>
+              <option value="EdTech">EdTech</option>
+              <option value="Environment">Environment & CleanTech</option>
+              <option value="Healthcare">Healthcare & Bio</option>
+              <option value="IoT">IoT & Hardware</option>
+              <option value="Retail">Retail & Consumer</option>
+              <option value="Service">Software / Service</option>
+              <option value="Logistics">Logistics & Supply Chain</option>
+            </select>
+          </label>
+          <label className="block text-xs font-semibold text-slate-600">
+            Project Stage<span className="ml-1 text-[#b75f59]">*</span>
+            <select
+              required
+              name="stage"
+              defaultValue="Idea / Concept"
+              className="mt-1.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-700 outline-none focus:border-[#76a0c6]"
+            >
+              <option value="Idea / Concept">Idea / Concept (Need initial funds to build)</option>
+              <option value="Prototype / MVP">Prototype / MVP (Working demo ready)</option>
+              <option value="Pilot Testing">Pilot Testing (User feedback stage)</option>
+              <option value="Early Revenue">Early Revenue (Paying customers)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-100 pt-4">
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
+          3. Opportunity, Innovation & Business Model
+        </p>
+        <div className="space-y-3">
+          <label className="block text-xs font-semibold text-slate-600">
+            What is your idea or ongoing project?<span className="ml-1 text-[#b75f59]">*</span>
+            <textarea
+              required
+              name="description"
+              rows={3}
+              minLength={20}
+              placeholder="Describe the problem, who experiences it, and how your project or technology solves it."
+              className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]"
+            />
+          </label>
+          <label className="block text-xs font-semibold text-slate-600">
+            How will it generate revenue or sustain operations?<span className="ml-1 text-[#b75f59]">*</span>
+            <textarea
+              required
+              name="businessModel"
+              rows={2}
+              placeholder="E.g. Direct sales, subscription, B2B licensing, institutional contracts."
+              className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-100 pt-4">
+        <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
+          4. Funding Request & Use of Funds
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Funding Requested (in Lakhs INR)"
+            name="requestedAmount"
+            type="number"
+            defaultValue="15"
+            placeholder="15"
+            hint="e.g. 15 for ₹ 15 Lakhs."
+          />
+          <Field
+            label="Pitch Deck / Demo Video Link (Optional)"
+            name="deckUrl"
+            type="url"
+            placeholder="https://drive.google.com/... or YouTube link"
+            hint="Optional link to presentation slides or demo."
+          />
+        </div>
+        <div className="mt-3">
+          <label className="block text-xs font-semibold text-slate-600">
+            Planned Use of Funds & Key Milestones<span className="ml-1 text-[#b75f59]">*</span>
+            <textarea
+              required
+              name="useOfFunds"
+              rows={2}
+              placeholder="Explain how this capital will be spent (e.g. 40% prototyping, 30% lab testing, 30% field trials) and what milestone it reaches."
+              className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal leading-5 text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#76a0c6] focus:ring-3 focus:ring-[#eaf2fa]"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="h-10 rounded-lg border border-slate-200 px-4 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 text-xs font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700"
+        >
+          <Coins className="size-4" />
+          <span>Submit Fund-Raising Application</span>
+          <ArrowRight className="size-3.5" />
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function ApplicationForm({
   name,
   defaultEmail,
@@ -2276,7 +2567,7 @@ function ApplicationForm({
     >
       <div>
         <p className="mb-3 text-[10px] font-bold uppercase tracking-[.13em] text-[#6384a2]">
-          Founder & Venture Info
+          Creator & Project Info
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Founder name" name="founder" defaultValue={name} />
@@ -2288,11 +2579,12 @@ function ApplicationForm({
             defaultValue={defaultEmail}
             placeholder="founder@college.edu"
           />
-          <Field label="Venture / Project name" name="name" defaultValue={defaultProjectName} placeholder="Idea / Startup name" />
+          <Field label="Project name" name="name" defaultValue={defaultProjectName} placeholder="Idea / Project name" />
           <Field
-            label="One-line tagline"
+            label="One tag-line (Optional)"
             name="tagline"
-            placeholder="A clear, memorable sentence"
+            required={false}
+            placeholder="A clear, memorable sentence (Optional)"
           />
           <label className="block text-xs font-semibold text-slate-600">
             Sector Category<span className="ml-1 text-[#b75f59]">*</span>

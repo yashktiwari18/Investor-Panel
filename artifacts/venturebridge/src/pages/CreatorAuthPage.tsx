@@ -6,9 +6,12 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  Globe,
   GraduationCap,
   Lock,
   Mail,
+  MapPin,
+  Phone,
   Rocket,
   ShieldCheck,
   Sparkles,
@@ -21,6 +24,9 @@ export interface CreatorAuthData {
   name: string;
   email: string;
   university?: string;
+  contact?: string;
+  city?: string;
+  country?: string;
   projectName?: string;
   category?: string;
 }
@@ -40,16 +46,18 @@ export default function CreatorAuthPage({
 }: CreatorAuthPageProps) {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
 
-  // Form states
+  // Login form state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
+  // Signup form states (Matching hand-drawn wireframe from Image 3)
   const [signupName, setSignupName] = useState('');
-  const [signupUniversity, setSignupUniversity] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
-  const [signupProjectName, setSignupProjectName] = useState('');
-  const [signupCategory, setSignupCategory] = useState('Agritech');
+  const [signupContact, setSignupContact] = useState('');
+  const [signupCity, setSignupCity] = useState('');
+  const [signupCountry, setSignupCountry] = useState('India');
+  const [signupUniversity, setSignupUniversity] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
@@ -59,13 +67,22 @@ export default function CreatorAuthPage({
   const [error, setError] = useState('');
   const [successNotice, setSuccessNotice] = useState('');
 
+  // Live password checklist evaluations
+  const isMinLength = signupPassword.length >= 8;
+  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(signupPassword);
+  const isMatching =
+    signupPassword.length > 0 &&
+    signupConfirmPassword.length > 0 &&
+    signupPassword === signupConfirmPassword;
+  const allPasswordCriteriaMet = isMinLength && hasSpecialChar && isMatching;
+
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccessNotice('');
 
     if (!loginEmail.trim() || !loginPassword.trim()) {
-      setError('Please provide both your email and password.');
+      setError('Please provide both your creator email and password.');
       return;
     }
 
@@ -81,7 +98,10 @@ export default function CreatorAuthPage({
     onSuccess({
       name: result.user.name,
       email: result.user.email,
-      university: result.user.university || 'Campus Innovator',
+      university: result.user.university || 'Creator / Innovator',
+      contact: result.user.contact,
+      city: result.user.city,
+      country: result.user.country,
       projectName: result.user.projectName,
       category: result.user.category,
     });
@@ -92,28 +112,42 @@ export default function CreatorAuthPage({
     setError('');
     setSuccessNotice('');
 
+    // Field 1: Full Name *
     if (!signupName.trim()) {
-      setError('Please provide your full name.');
+      setError('Please enter your full name.');
       return;
     }
+    // Field 2: Email *
     if (!signupEmail.trim()) {
-      setError('Please provide your student or contact email.');
+      setError('Please enter your creator email address.');
       return;
     }
-    if (!signupUniversity.trim()) {
-      setError('Please provide your university or college.');
+    // Field 3: Contact *
+    if (!signupContact.trim()) {
+      setError('Please enter your contact / phone number.');
+      return;
+    }
+    // Field 4: City * & Country *
+    if (!signupCity.trim()) {
+      setError('Please enter your city.');
+      return;
+    }
+    if (!signupCountry.trim()) {
+      setError('Please enter your country.');
       return;
     }
 
-    // Validate password: 8 chars, 1 special char, matches confirm password
+    // Field 5: Institute / University is OPTIONAL (not mandatory per Image 2 & 3)
+
+    // Field 6: Password Checklist rules validation (8+ chars, 1 special char, match)
     const passValidation = validateNewPassword(signupPassword, signupConfirmPassword);
     if (!passValidation.isValid) {
-      setError(passValidation.error || 'Invalid password.');
+      setError(passValidation.error || 'Password does not meet requirements.');
       return;
     }
 
     if (!signupTerms) {
-      setError('Please agree to the founder guidelines.');
+      setError('Please agree to the creator guidelines.');
       return;
     }
 
@@ -121,12 +155,13 @@ export default function CreatorAuthPage({
     const result = registerUser({
       name: signupName.trim(),
       email: signupEmail.trim(),
+      contact: signupContact.trim(),
+      city: signupCity.trim(),
+      country: signupCountry.trim(),
+      university: signupUniversity.trim(),
       password: signupPassword,
       confirmPassword: signupConfirmPassword,
-      role: 'student',
-      university: signupUniversity.trim(),
-      projectName: signupProjectName.trim(),
-      category: signupCategory,
+      role: 'student', // Maps to creator role
     });
 
     if (!result.success || !result.user) {
@@ -134,7 +169,7 @@ export default function CreatorAuthPage({
       return;
     }
 
-    // Success! New user must now log in with their created account
+    // Success! Creator user must now log in with their created account
     setSuccessNotice(
       `🎉 Account created successfully for ${result.user.name}! Please enter your password below to log in.`
     );
@@ -142,7 +177,7 @@ export default function CreatorAuthPage({
     setLoginPassword('');
     setSignupPassword('');
     setSignupConfirmPassword('');
-    setMode('login'); // Switch to login tab as requested!
+    setMode('login'); // Switch to login tab!
   };
 
   // Demo auto-fill helpers
@@ -151,18 +186,19 @@ export default function CreatorAuthPage({
     setLoginEmail(email);
     setLoginPassword(pass);
     setError('');
-    setSuccessNotice('Pre-filled sample student founder credentials. Click "Log In" below.');
+    setSuccessNotice('Pre-filled sample creator credentials. Click "Log In" below.');
   };
 
   const handleDemoSignupFill = () => {
     const randomSuffix = Math.floor(100 + Math.random() * 900);
     setSignupName('Rohan Gupta');
-    setSignupUniversity('IIT Delhi');
-    setSignupEmail(`rohan.gupta${randomSuffix}@iitd.ac.in`);
-    setSignupProjectName('QuantumClean Filtration');
-    setSignupCategory('Clean Energy');
-    setSignupPassword('Student@123');
-    setSignupConfirmPassword('Student@123');
+    setSignupEmail(`rohan.creator${randomSuffix}@gmail.com`);
+    setSignupContact('+91 98765 43210');
+    setSignupCity('Mumbai');
+    setSignupCountry('India');
+    setSignupUniversity('IIT Bombay');
+    setSignupPassword('Creator@123');
+    setSignupConfirmPassword('Creator@123');
     setError('');
     setSuccessNotice('');
   };
@@ -200,7 +236,7 @@ export default function CreatorAuthPage({
           <div className="flex items-center gap-2.5">
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50/80 px-3 py-1 text-[11px] font-bold text-blue-700">
               <Sparkles className="size-3 text-amber-500 fill-amber-400" />
-              <span>Student & Creator Portal</span>
+              <span>Creator Portal</span>
             </span>
 
             <button
@@ -222,15 +258,17 @@ export default function CreatorAuthPage({
           <div className="lg:col-span-5 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3.5 py-1 text-xs font-bold text-blue-700 shadow-sm">
               <Rocket className="size-3.5 text-blue-600" />
-              <span>List Your Project & Raise Grants</span>
+              <span>List Your Project & Raise Funds</span>
             </div>
 
             <h1 className="font-[var(--app-font-serif)] text-3xl font-extrabold leading-[1.2] tracking-tight text-[#0f2d52] sm:text-4xl">
-              Turn Your Campus Idea Into Real-World Impact
+              Turn Your Ideas Into Real-World Impact
             </h1>
 
             <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
-              New founders must create an account first. Once registered, log in to verify your campus identity, submit your project details, and connect with active angels and grant committees.
+              New creators must create an account first. Once registered, log in to verify your
+              creator profile, submit your project details, and connect with active angels and grant
+              committees.
             </p>
 
             {/* Feature Bullets */}
@@ -240,9 +278,9 @@ export default function CreatorAuthPage({
                   <CheckCircle2 className="size-5" />
                 </div>
                 <div>
-                  <h2 className="text-xs font-bold text-slate-800">100% Campus-Verified Showcase</h2>
+                  <h2 className="text-xs font-bold text-slate-800">100% Verified Creator Showcase</h2>
                   <p className="text-[11px] text-slate-500">
-                    Your account links to your university affiliation to certify your collegiate venture.
+                    Your account connects to certified creator identity to showcase your innovation to vetted capital partners.
                   </p>
                 </div>
               </div>
@@ -272,20 +310,20 @@ export default function CreatorAuthPage({
               </div>
             </div>
 
-            {/* Mini Quote from Student */}
+            {/* Quote from Creator */}
             <div className="rounded-2xl border border-slate-200/80 bg-white/60 p-4 backdrop-blur-sm">
               <p className="text-xs italic text-slate-600">
-                “IdeaBridge made listing our college project seamless. After creating my founder account and submitting our project, we were connected with two angel funds within a fortnight.”
+                “IdeaBridge made listing our project seamless. After creating my creator account and submitting our project, we were connected with two angel funds within a fortnight.”
               </p>
               <div className="mt-3 flex items-center gap-2.5">
                 <img
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                  alt="Student Founder"
+                  alt="Creator Maya Chen"
                   className="size-8 rounded-full object-cover ring-2 ring-white"
                 />
                 <div>
                   <p className="text-xs font-bold text-slate-800">Maya Chen</p>
-                  <p className="text-[10px] text-slate-500">Founder, GreenRoots · IIT Bombay</p>
+                  <p className="text-[10px] text-slate-500">Creator, GreenRoots · IIT Bombay</p>
                 </div>
               </div>
             </div>
@@ -298,19 +336,19 @@ export default function CreatorAuthPage({
               <div className="mb-6 space-y-4 text-center sm:text-left">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600">
-                    {mode === 'login' ? 'Founder Sign In' : 'Step 1: Create Account'}
+                    {mode === 'login' ? 'CREATOR SIGN IN' : 'STEP 1: CREATE ACCOUNT'}
                   </span>
                   <span className="text-xs font-medium text-slate-400">
                     {mode === 'login' ? 'Step 2 of 2' : 'Step 1 of 2'}
                   </span>
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight text-[#0f2d52]">
-                  {mode === 'login' ? 'Log In to List Your Project' : 'Create Your Founder Account'}
+                  {mode === 'login' ? 'Log In to List Your Project' : 'Create Your Creator Account'}
                 </h2>
                 <p className="text-xs text-slate-500">
                   {mode === 'login'
                     ? 'Enter your registered email and password to access the project submission form.'
-                    : 'First create your student founder profile. After creating your account, you will log in to list your venture.'}
+                    : 'First create your creator profile. After creating your account, you will log in to list your project or raise funds.'}
                 </p>
 
                 {/* Tab Pill Switcher */}
@@ -371,18 +409,18 @@ export default function CreatorAuthPage({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <Sparkles className="size-4 text-emerald-600" />
-                      <span className="text-xs font-bold text-emerald-900">1-Click New Student Fill:</span>
+                      <span className="text-xs font-bold text-emerald-900">1-Click Creator Fill:</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleDemoSignupFill}
                       className="rounded-lg bg-emerald-700 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm transition hover:bg-emerald-800"
                     >
-                      Fill New Student
+                      Fill New Creator
                     </button>
                   </div>
                   <p className="mt-1 text-[11px] text-emerald-800">
-                    Auto-fills a new unique student to test creating an account with password matching.
+                    Auto-fills a new unique creator to test creating an account with password matching.
                   </p>
                 </div>
               )}
@@ -419,12 +457,12 @@ export default function CreatorAuthPage({
                 </div>
               )}
 
-              {/* LOGIN FORM (Only 1 password field - no confirm password on login) */}
+              {/* LOGIN FORM (Image 4) */}
               {mode === 'login' && (
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700">
-                      Registered Student Email <span className="text-red-500">*</span>
+                      Registered Creator Email <span className="text-red-500">*</span>
                     </label>
                     <div className="relative mt-1.5">
                       <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -433,7 +471,7 @@ export default function CreatorAuthPage({
                         required
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="e.g. founder@iitb.ac.in"
+                        placeholder="e.g. creator@domain.com"
                         className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 text-xs sm:text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                       />
                     </div>
@@ -446,7 +484,7 @@ export default function CreatorAuthPage({
                       </label>
                       <button
                         type="button"
-                        onClick={() => alert('Password reset verification link would be sent to your student email.')}
+                        onClick={() => alert('Password reset verification link would be sent to your registered creator email.')}
                         className="text-[11px] font-semibold text-blue-600 hover:underline"
                       >
                         Forgot password?
@@ -476,11 +514,11 @@ export default function CreatorAuthPage({
                   <div className="flex items-center gap-2 pt-1">
                     <input
                       type="checkbox"
-                      id="remember-founder"
+                      id="remember-creator"
                       defaultChecked
                       className="size-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <label htmlFor="remember-founder" className="text-xs text-slate-600">
+                    <label htmlFor="remember-creator" className="text-xs text-slate-600">
                       Remember this browser session
                     </label>
                   </div>
@@ -512,168 +550,255 @@ export default function CreatorAuthPage({
                 </form>
               )}
 
-              {/* SIGNUP FORM (With Password & Confirm Password matching) */}
+              {/* SIGNUP FORM (Images 2 & 3 - Exact Wireframe Layout) */}
               {mode === 'signup' && (
                 <form onSubmit={handleSignupSubmit} className="space-y-3.5">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700">
-                        Full Name <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative mt-1.5">
-                        <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="text"
-                          required
-                          value={signupName}
-                          onChange={(e) => setSignupName(e.target.value)}
-                          placeholder="e.g. Maya Chen"
-                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700">
-                        University / Institution <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative mt-1.5">
-                        <GraduationCap className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="text"
-                          required
-                          value={signupUniversity}
-                          onChange={(e) => setSignupUniversity(e.target.value)}
-                          placeholder="e.g. IIT Bombay"
-                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                        />
-                      </div>
+                  {/* Field 1: Full Name * */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative mt-1">
+                      <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        required
+                        value={signupName}
+                        onChange={(e) => setSignupName(e.target.value)}
+                        placeholder="e.g. Maya Chen"
+                        className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      />
                     </div>
                   </div>
 
+                  {/* Field 2: Email * */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700">
-                      Student / Contact Email <span className="text-red-500">*</span>
+                      Email <span className="text-red-500">*</span>
                     </label>
-                    <div className="relative mt-1.5">
+                    <div className="relative mt-1">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                       <input
                         type="email"
                         required
                         value={signupEmail}
                         onChange={(e) => setSignupEmail(e.target.value)}
-                        placeholder="founder@college.edu"
+                        placeholder="e.g. creator@domain.com"
                         className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                       />
                     </div>
                   </div>
 
+                  {/* Field 3: Contact * */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700">
+                      Contact <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative mt-1">
+                      <Phone className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="tel"
+                        required
+                        value={signupContact}
+                        onChange={(e) => setSignupContact(e.target.value)}
+                        placeholder="e.g. +91 98765 43210"
+                        className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Field 4: City * and Country * (Side-by-side as in wireframe) */}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-700">
-                        Startup / Idea Name (Optional)
+                        City <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
-                        value={signupProjectName}
-                        onChange={(e) => setSignupProjectName(e.target.value)}
-                        placeholder="e.g. GreenRoots"
-                        className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                      />
+                      <div className="relative mt-1">
+                        <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          required
+                          value={signupCity}
+                          onChange={(e) => setSignupCity(e.target.value)}
+                          placeholder="e.g. Mumbai"
+                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700">
-                        Primary Sector
+                        Country <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        value={signupCategory}
-                        onChange={(e) => setSignupCategory(e.target.value)}
-                        className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-800 outline-none transition hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      <div className="relative mt-1">
+                        <Globe className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          required
+                          value={signupCountry}
+                          onChange={(e) => setSignupCountry(e.target.value)}
+                          placeholder="e.g. India"
+                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Field 5: Institute / University (Optional / Not mandatory per Image 2 & 3) */}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Institute / University
+                      </label>
+                      <span className="text-[10px] font-semibold text-slate-400">Not mandatory (Optional)</span>
+                    </div>
+                    <div className="relative mt-1">
+                      <GraduationCap className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        value={signupUniversity}
+                        onChange={(e) => setSignupUniversity(e.target.value)}
+                        placeholder="e.g. IIT Bombay, Delhi University, or Independent Innovator"
+                        className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* (Note: Startup Name & Primary Sector removed as crossed out in Image 2) */}
+
+                  {/* Field 6: Create Password * & Confirm Password * (Side-by-side as in wireframe) */}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700">
+                        Create Password <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative mt-1">
+                        <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type={showSignupPassword ? 'text' : 'password'}
+                          required
+                          value={signupPassword}
+                          onChange={(e) => setSignupPassword(e.target.value)}
+                          placeholder="Min. 8 chars & special char"
+                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-10 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSignupPassword(!showSignupPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          aria-label="Toggle password visibility"
+                        >
+                          {showSignupPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700">
+                        Confirm Password <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative mt-1">
+                        <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type={showSignupConfirmPassword ? 'text' : 'password'}
+                          required
+                          value={signupConfirmPassword}
+                          onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                          placeholder="Re-enter password"
+                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-10 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          aria-label="Toggle confirm password visibility"
+                        >
+                          {showSignupConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Field 7: Check list Password Box (Hand-drawn in Image 3) */}
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                      <span className="flex items-center gap-1.5">
+                        <ShieldCheck className="size-4 text-blue-600" />
+                        <span>Check list Password</span>
+                      </span>
+                      {signupPassword.length > 0 && (
+                        <span
+                          className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                            allPasswordCriteriaMet
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {allPasswordCriteriaMet ? 'All Met ✓' : 'Requirements Pending'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5 text-xs">
+                      {/* Item 1: At least 8 characters */}
+                      <div
+                        className={`flex items-center gap-2 transition-colors ${
+                          isMinLength ? 'text-emerald-700 font-semibold' : 'text-slate-500'
+                        }`}
                       >
-                        <option value="Agritech">Agritech</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Environment">Environment & CleanTech</option>
-                        <option value="Retail">Retail & Consumer</option>
-                        <option value="Manufacturing">Manufacturing</option>
-                        <option value="Service">Service & SaaS</option>
-                        <option value="EdTech">EdTech</option>
-                        <option value="Clean Energy">Clean Energy</option>
-                      </select>
+                        {isMinLength ? (
+                          <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                        ) : (
+                          <div className="size-4 rounded border border-slate-300 bg-white shrink-0" />
+                        )}
+                        <span>At least 8 characters long ({signupPassword.length}/8)</span>
+                      </div>
+
+                      {/* Item 2: At least 1 special character */}
+                      <div
+                        className={`flex items-center gap-2 transition-colors ${
+                          hasSpecialChar ? 'text-emerald-700 font-semibold' : 'text-slate-500'
+                        }`}
+                      >
+                        {hasSpecialChar ? (
+                          <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                        ) : (
+                          <div className="size-4 rounded border border-slate-300 bg-white shrink-0" />
+                        )}
+                        <span>At least 1 special character (!@#$%^&* etc.)</span>
+                      </div>
+
+                      {/* Item 3: Passwords match */}
+                      <div
+                        className={`flex items-center gap-2 transition-colors ${
+                          isMatching ? 'text-emerald-700 font-semibold' : 'text-slate-500'
+                        }`}
+                      >
+                        {isMatching ? (
+                          <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                        ) : (
+                          <div className="size-4 rounded border border-slate-300 bg-white shrink-0" />
+                        )}
+                        <span>Confirm password matches Create password</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* PASSWORD & CONFIRM PASSWORD SECTION (Must match & have 8+ chars + special char) */}
-                  <div className="space-y-1.5">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700">
-                          Create Password <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative mt-1.5">
-                          <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type={showSignupPassword ? 'text' : 'password'}
-                            required
-                            value={signupPassword}
-                            onChange={(e) => setSignupPassword(e.target.value)}
-                            placeholder="Min. 8 chars (e.g. Pass@123)"
-                            className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-10 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowSignupPassword(!showSignupPassword)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                            aria-label="Toggle password visibility"
-                          >
-                            {showSignupPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700">
-                          Confirm Password <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative mt-1.5">
-                          <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                          <input
-                            type={showSignupConfirmPassword ? 'text' : 'password'}
-                            required
-                            value={signupConfirmPassword}
-                            onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                            placeholder="Re-enter password"
-                            className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-10 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                            aria-label="Toggle confirm password visibility"
-                          >
-                            {showSignupConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-[11px] text-slate-500">
-                      Must be at least 8 characters and include at least one special character (!@#$%^&* etc.)
-                    </p>
-                  </div>
-
+                  {/* Terms agreement */}
                   <div className="flex items-start gap-2 pt-1">
                     <input
                       type="checkbox"
-                      id="founder-terms"
+                      id="creator-terms"
                       checked={signupTerms}
                       onChange={(e) => setSignupTerms(e.target.checked)}
                       className="mt-0.5 size-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <label htmlFor="founder-terms" className="text-[11px] leading-tight text-slate-600">
-                      I agree to the IdeaBridge Community Guidelines and certify that I am a student or campus innovator.
+                    <label htmlFor="creator-terms" className="text-[11px] leading-tight text-slate-600">
+                      I agree to the IdeaBridge Community Guidelines and certify that I am a creator or innovator.
                     </label>
                   </div>
 
+                  {/* Submit Button */}
                   <button
                     type="submit"
                     className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#1877f2] px-6 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#1264ce] focus:outline-none focus:ring-4 focus:ring-blue-200"

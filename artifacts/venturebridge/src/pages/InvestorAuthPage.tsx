@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
-  Briefcase,
   Building2,
   CheckCircle2,
   Eye,
@@ -47,12 +46,12 @@ export default function InvestorAuthPage({
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
-  const [signupPartnerName, setSignupPartnerName] = useState('');
-  const [signupFirmName, setSignupFirmName] = useState('');
-  const [signupInvestorType, setSignupInvestorType] = useState('Angel Investor');
+  // Sign up fields (First Name, Last Name Optional, Personal/Business Email per Image 1)
+  const [signupFirstName, setSignupFirstName] = useState('');
+  const [signupLastName, setSignupLastName] = useState('');
+  const [signupInvestorType, setSignupInvestorType] = useState('Individual');
   const [signupWorkEmail, setSignupWorkEmail] = useState('');
   const [signupTicketSize, setSignupTicketSize] = useState('15-30');
-  const [signupSector, setSignupSector] = useState('All');
   const [signupPassword, setSignupPassword] = useState('');
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
@@ -62,13 +61,22 @@ export default function InvestorAuthPage({
   const [error, setError] = useState('');
   const [successNotice, setSuccessNotice] = useState('');
 
+  // Live password checklist evaluations
+  const isMinLength = signupPassword.length >= 8;
+  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(signupPassword);
+  const isMatching =
+    signupPassword.length > 0 &&
+    signupConfirmPassword.length > 0 &&
+    signupPassword === signupConfirmPassword;
+  const allPasswordCriteriaMet = isMinLength && hasSpecialChar && isMatching;
+
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccessNotice('');
 
     if (!loginEmail.trim() || !loginPassword.trim()) {
-      setError('Please provide your work email and password.');
+      setError('Please provide your email and password.');
       return;
     }
 
@@ -95,16 +103,14 @@ export default function InvestorAuthPage({
     setError('');
     setSuccessNotice('');
 
-    if (!signupFirmName.trim()) {
-      setError('Please enter your investment vehicle, fund, or syndicate name.');
+    // First Name * (mandatory)
+    if (!signupFirstName.trim()) {
+      setError('Please enter your first name.');
       return;
     }
-    if (!signupPartnerName.trim()) {
-      setError('Please enter your partner name or title.');
-      return;
-    }
+    // Personal / Business Email * (mandatory)
     if (!signupWorkEmail.trim()) {
-      setError('Please enter your work or institutional email address.');
+      setError('Please enter your personal or business email address.');
       return;
     }
 
@@ -116,14 +122,16 @@ export default function InvestorAuthPage({
     }
 
     if (!signupAccredited) {
-      setError('Please certify investor accreditation.');
+      setError('Kripya pushti karein ki details correct hain aur aap terms & conditions se sehmat hain.');
       return;
     }
 
+    const fullName = `${signupFirstName.trim()} ${signupLastName.trim()}`.trim();
+
     // Register new investor account
     const result = registerUser({
-      name: signupPartnerName.trim(),
-      firmName: signupFirmName.trim(),
+      name: fullName,
+      firmName: fullName,
       email: signupWorkEmail.trim(),
       password: signupPassword,
       confirmPassword: signupConfirmPassword,
@@ -139,7 +147,7 @@ export default function InvestorAuthPage({
 
     // Success! Direct them to log in with their created account
     setSuccessNotice(
-      `🎉 Investor account registered successfully for ${result.user.firmName || result.user.name}! Please enter your password to log in.`
+      `🎉 Investor account registered successfully for ${result.user.name}! Please enter your password to log in.`
     );
     setLoginEmail(result.user.email);
     setLoginPassword('');
@@ -159,11 +167,11 @@ export default function InvestorAuthPage({
 
   const handleDemoSignupFill = () => {
     const randomSuffix = Math.floor(100 + Math.random() * 900);
-    setSignupFirmName(`Bluestone Seed Fund ${randomSuffix}`);
-    setSignupPartnerName('Aditya Rao');
-    setSignupWorkEmail(`aditya${randomSuffix}@bluestoneseed.in`);
-    setSignupInvestorType('Venture Capital Fund');
-    setSignupTicketSize('30-50');
+    setSignupFirstName('Vikram');
+    setSignupLastName('Singhania');
+    setSignupWorkEmail(`vikram.investor${randomSuffix}@gmail.com`);
+    setSignupInvestorType('Individual');
+    setSignupTicketSize('15-30');
     setSignupPassword('Investor@123');
     setSignupConfirmPassword('Investor@123');
     setError('');
@@ -211,7 +219,7 @@ export default function InvestorAuthPage({
               onClick={onSwitchToCreator}
               className="inline-flex items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
             >
-              <span>Student Creator Portal</span>
+              <span>Creator Portal</span>
               <ArrowRight className="size-3.5" />
             </button>
           </div>
@@ -278,7 +286,7 @@ export default function InvestorAuthPage({
             {/* Testimonial Quote */}
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
               <p className="text-xs italic text-slate-300">
-                “We found an innovative student team with amazing potential through IdeaBridge. The clarity of milestones and campus endorsement made diligence 5x faster.”
+                “We found an innovative creator team with amazing potential through IdeaBridge. The clarity of milestones and campus endorsement made diligence 5x faster.”
               </p>
               <div className="mt-3 flex items-center gap-2.5">
                 <img
@@ -301,7 +309,7 @@ export default function InvestorAuthPage({
               <div className="mb-6 space-y-4 text-center sm:text-left">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600">
-                    {mode === 'login' ? 'Institutional Log In' : 'Step 1: Firm Registration'}
+                    {mode === 'login' ? 'INVESTOR LOG IN' : 'Step 1: Investor Registration'}
                   </span>
                   <span className="text-xs font-medium text-slate-400">
                     {mode === 'login' ? 'Step 2 of 2' : 'Step 1 of 2'}
@@ -312,8 +320,8 @@ export default function InvestorAuthPage({
                 </h2>
                 <p className="text-xs text-slate-500">
                   {mode === 'login'
-                    ? 'Enter your institutional email and password to access the investor deal flow workspace.'
-                    : 'First register your investment syndicate or fund. After registering, log in to explore curated student startups.'}
+                    ? 'Enter your personal or business email and password to access the investor deal flow workspace.'
+                    : 'First register your investment profile. After registering, log in to explore curated creator projects.'}
                 </p>
 
                 {/* Tab Pill Switcher */}
@@ -383,18 +391,18 @@ export default function InvestorAuthPage({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <Sparkles className="size-4 text-sky-600" />
-                      <span className="text-xs font-bold text-sky-900">1-Click New Firm Fill:</span>
+                      <span className="text-xs font-bold text-sky-900">1-Click New Investor Fill:</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleDemoSignupFill}
                       className="rounded-lg bg-sky-700 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm transition hover:bg-sky-800"
                     >
-                      Fill New Firm
+                      Fill New Investor
                     </button>
                   </div>
                   <p className="mt-1 text-[11px] text-sky-800">
-                    Auto-fills a new unique fund with matching passwords to test registration.
+                    Auto-fills a new unique investor with matching passwords to test registration.
                   </p>
                 </div>
               )}
@@ -423,7 +431,7 @@ export default function InvestorAuthPage({
                         }}
                         className="mt-1.5 inline-flex items-center gap-1 rounded-lg bg-red-100 px-2 py-0.5 font-bold text-red-800 hover:bg-red-200"
                       >
-                        <span>Register your firm now</span>
+                        <span>Register your investor account now</span>
                         <ArrowRight className="size-3" />
                       </button>
                     )}
@@ -431,12 +439,12 @@ export default function InvestorAuthPage({
                 </div>
               )}
 
-              {/* INVESTOR LOGIN FORM (Only 1 password field - no confirm password on login) */}
+              {/* INVESTOR LOGIN FORM */}
               {mode === 'login' && (
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700">
-                      Work / Institutional Email <span className="text-red-500">*</span>
+                      Work / Personal or Business Email <span className="text-red-500">*</span>
                     </label>
                     <div className="relative mt-1.5">
                       <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -507,7 +515,7 @@ export default function InvestorAuthPage({
 
                   <div className="border-t border-slate-100 pt-4 text-center">
                     <p className="text-xs text-slate-500">
-                      Not registered yet?{' '}
+                      Not registered as investor yet?{' '}
                       <button
                         type="button"
                         onClick={() => {
@@ -517,52 +525,56 @@ export default function InvestorAuthPage({
                         }}
                         className="font-bold text-blue-600 hover:underline"
                       >
-                        Register your firm first
+                        Register First
                       </button>
                     </p>
                   </div>
                 </form>
               )}
 
-              {/* INVESTOR SIGNUP FORM (With Password & Confirm Password matching) */}
+              {/* INVESTOR SIGNUP FORM (Image 1, 2, 3 changes) */}
               {mode === 'signup' && (
                 <form onSubmit={handleSignupSubmit} className="space-y-3.5">
+                  {/* Row 1: First Name * & Last Name (Optional) */}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-700">
-                        Firm / Syndicate Name <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative mt-1.5">
-                        <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="text"
-                          required
-                          value={signupFirmName}
-                          onChange={(e) => setSignupFirmName(e.target.value)}
-                          placeholder="e.g. Apex Ventures"
-                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700">
-                        Partner / Lead Name <span className="text-red-500">*</span>
+                        First Name <span className="text-red-500">*</span>
                       </label>
                       <div className="relative mt-1.5">
                         <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                         <input
                           type="text"
                           required
-                          value={signupPartnerName}
-                          onChange={(e) => setSignupPartnerName(e.target.value)}
-                          placeholder="e.g. Vikram Singhania"
+                          value={signupFirstName}
+                          onChange={(e) => setSignupFirstName(e.target.value)}
+                          placeholder="e.g. Vikram"
+                          className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Last Name
+                        </label>
+                        <span className="text-[10px] font-semibold text-slate-400">Optional</span>
+                      </div>
+                      <div className="relative mt-1.5">
+                        <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          value={signupLastName}
+                          onChange={(e) => setSignupLastName(e.target.value)}
+                          placeholder="e.g. Singhania"
                           className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                         />
                       </div>
                     </div>
                   </div>
 
+                  {/* Row 2: Investor Classification (Individual 1st, Business firm 2nd) & Ticket Size */}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-700">
@@ -573,12 +585,15 @@ export default function InvestorAuthPage({
                         onChange={(e) => setSignupInvestorType(e.target.value)}
                         className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-800 outline-none transition hover:border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                       >
-                        <option value="Angel Investor">Individual Angel</option>
-                        <option value="Angel Syndicate">Angel Syndicate / Network</option>
-                        <option value="Venture Capital Fund">Venture Capital Fund (VC)</option>
-                        <option value="Campus Accelerator">Campus Accelerator / Incubator</option>
+                        {/* 1st: Individual Angel / Individual per Image 2 & 3 */}
+                        <option value="Individual">Individual</option>
+                        {/* 2nd: Business firm per Image 2 & 3 */}
+                        <option value="Business firm">Business firm</option>
+                        <option value="Angel Syndicate / Network">Angel Syndicate / Network</option>
+                        <option value="Venture Capital Fund (VC)">Venture Capital Fund (VC)</option>
+                        <option value="Campus Accelerator / Incubator">Campus Accelerator / Incubator</option>
                         <option value="Family Office">Family Office</option>
-                        <option value="Corporate VC">Corporate Venture (CVC)</option>
+                        <option value="Corporate Venture (CVC)">Corporate Venture (CVC)</option>
                       </select>
                     </div>
 
@@ -601,9 +616,10 @@ export default function InvestorAuthPage({
                     </div>
                   </div>
 
+                  {/* Row 3: Personal / Business Email * (Image 1) */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700">
-                      Work / Corporate Email <span className="text-red-500">*</span>
+                      Personal / Business Email <span className="text-red-500">*</span>
                     </label>
                     <div className="relative mt-1.5">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -612,13 +628,13 @@ export default function InvestorAuthPage({
                         required
                         value={signupWorkEmail}
                         onChange={(e) => setSignupWorkEmail(e.target.value)}
-                        placeholder="deals@apexventures.in"
+                        placeholder="e.g. vikram@domain.com or deals@apex.in"
                         className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                       />
                     </div>
                   </div>
 
-                  {/* PASSWORD & CONFIRM PASSWORD SECTION (Must match & have 8+ chars + special char) */}
+                  {/* Password & Confirm Password Section */}
                   <div className="space-y-1.5">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
@@ -671,11 +687,71 @@ export default function InvestorAuthPage({
                         </div>
                       </div>
                     </div>
-                    <p className="text-[11px] text-slate-500">
-                      Must be at least 8 characters and include at least one special character (!@#$%^&* etc.)
-                    </p>
+
+                    {/* Password Checklist Box */}
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span className="flex items-center gap-1.5">
+                          <ShieldCheck className="size-4 text-blue-600" />
+                          <span>Check list Password</span>
+                        </span>
+                        {signupPassword.length > 0 && (
+                          <span
+                            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                              allPasswordCriteriaMet
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {allPasswordCriteriaMet ? 'All Met ✓' : 'Requirements Pending'}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        <div
+                          className={`flex items-center gap-2 transition-colors ${
+                            isMinLength ? 'text-emerald-700 font-semibold' : 'text-slate-500'
+                          }`}
+                        >
+                          {isMinLength ? (
+                            <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                          ) : (
+                            <div className="size-4 rounded border border-slate-300 bg-white shrink-0" />
+                          )}
+                          <span>At least 8 characters long ({signupPassword.length}/8)</span>
+                        </div>
+
+                        <div
+                          className={`flex items-center gap-2 transition-colors ${
+                            hasSpecialChar ? 'text-emerald-700 font-semibold' : 'text-slate-500'
+                          }`}
+                        >
+                          {hasSpecialChar ? (
+                            <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                          ) : (
+                            <div className="size-4 rounded border border-slate-300 bg-white shrink-0" />
+                          )}
+                          <span>At least 1 special character (!@#$%^&* etc.)</span>
+                        </div>
+
+                        <div
+                          className={`flex items-center gap-2 transition-colors ${
+                            isMatching ? 'text-emerald-700 font-semibold' : 'text-slate-500'
+                          }`}
+                        >
+                          {isMatching ? (
+                            <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                          ) : (
+                            <div className="size-4 rounded border border-slate-300 bg-white shrink-0" />
+                          )}
+                          <span>Confirm password matches Create password</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Terms & Conditions Checkbox (Exact text requested in Image 1) */}
                   <div className="flex items-start gap-2 pt-1">
                     <input
                       type="checkbox"
@@ -685,7 +761,7 @@ export default function InvestorAuthPage({
                       className="mt-0.5 size-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
                     <label htmlFor="investor-terms" className="text-[11px] leading-tight text-slate-600">
-                      I certify that I represent an accredited angel network, investment firm, or university grant reviewer.
+                      Aapke dwara di gai details correct hai, aap hmare terms & condition, data policy se aap sehmat hai.
                     </label>
                   </div>
 
@@ -716,14 +792,14 @@ export default function InvestorAuthPage({
                 </form>
               )}
 
-              {/* Bottom Switch to Creator */}
+              {/* Bottom Switch to Creator (Image 1: replace student or campus innovator to creator) */}
               <div className="mt-5 border-t border-slate-100 pt-3.5 text-center">
                 <button
                   type="button"
                   onClick={onSwitchToCreator}
                   className="text-xs font-semibold text-slate-500 hover:text-blue-700 transition"
                 >
-                  Are you a student or campus innovator looking to list?{' '}
+                  Are you a creator looking to list?{' '}
                   <span className="text-blue-600 underline">Go to Creator Portal →</span>
                 </button>
               </div>
