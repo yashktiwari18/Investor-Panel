@@ -6,6 +6,9 @@ export interface UserAccount {
   email: string;
   password: string; // Plaintext for demo/local evaluation
   role: UserRole;
+  contact?: string;
+  city?: string;
+  country?: string;
   university?: string;
   projectName?: string;
   category?: string;
@@ -166,6 +169,9 @@ export function registerUser(input: {
   password: string;
   confirmPassword?: string;
   role: UserRole;
+  contact?: string;
+  city?: string;
+  country?: string;
   university?: string;
   projectName?: string;
   category?: string;
@@ -200,6 +206,9 @@ export function registerUser(input: {
     email: normalizedEmail,
     password: input.password,
     role: input.role,
+    contact: input.contact?.trim(),
+    city: input.city?.trim(),
+    country: input.country?.trim(),
     university: input.university?.trim(),
     projectName: input.projectName?.trim(),
     category: input.category,
@@ -258,7 +267,7 @@ export function loginUser(
 
   if (expectedRole && user.role !== expectedRole) {
     const roleLabels: Record<UserRole, string> = {
-      student: 'Student Creator / Founder',
+      student: 'Creator',
       investor: 'Investor',
       admin: 'Administrator',
     };
