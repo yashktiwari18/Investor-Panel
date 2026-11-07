@@ -157,3 +157,25 @@
   background-size: 28px 28px;
 }
 ::selection { background: #dceafa; color: #163b66; }
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-continuous {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 22s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-continuous:hover,
+.animate-marquee-continuous:active {
+  animation-play-state: paused;
+}
+
